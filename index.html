@@ -12,7 +12,7 @@
       --bg: #eef2f5; --card: #ffffff; --text: #1e293b; --muted: #64748b;
       --border: #d8e0e8; --nav-bg: #3b5b70; --nav-sub: #4f738a;
       --nav-active: #274050; --primary: #2d6a8e; --primary-soft: #e0f2fe;
-      --g3: #b91c1c; --g2: #1d4ed8; --g1: #334155;
+      --g3: #c81e1e; --g2: #1d4ed8; --g1: #334155;
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-bot: env(safe-area-inset-bottom, 0px);
     }
@@ -97,29 +97,41 @@
       background: var(--card); border: 1px solid var(--border); color: var(--text); cursor: pointer;
     }
     .chip.active { background: var(--nav-bg); color: #fff; border-color: var(--nav-bg); }
-    .card {
+    .book-sheet {
       background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-      padding: 11px 12px; margin-bottom: 8px;
+      padding: 6px 12px;
     }
+    .book-entry {
+      padding: 10px 0; border-bottom: 1px solid var(--border);
+    }
+    .book-entry:last-child { border-bottom: none; }
     .rubric-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-    .rubric-path { font-size: 14px; font-weight: 600; line-height: 1.35; flex: 1; }
-    .rubric-meta { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .rubric-title { font-size: 15px; line-height: 1.35; flex: 1; }
+    .rubric-title strong { font-weight: 800; }
+    .rubric-sub { color: var(--muted); font-weight: 500; }
+    .rems-inline { margin-top: 4px; line-height: 1.55; font-size: 14px; }
+    .rem-g3, .rem-g4 { color: var(--g3); font-weight: 800; }
+    .rem-g2 { color: var(--g2); font-weight: 700; font-style: italic; }
+    .rem-g1 { color: var(--g1); font-weight: 400; }
+    .rem-item { display: inline-block; margin-right: 7px; cursor: pointer; }
+    .xref { color: var(--g3); font-style: italic; font-size: 13px; margin-top: 3px; cursor: pointer; }
+    .pager { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; gap: 8px; }
     .btn-sm {
       padding: 5px 9px; border-radius: 6px; border: 1px solid var(--border); font-size: 12px; font-weight: 700;
       background: var(--primary-soft); color: var(--primary); cursor: pointer; white-space: nowrap;
     }
     .btn-sm.added { background: var(--nav-bg); color: #fff; border-color: var(--nav-bg); }
-    .rems-wrap { margin-top: 8px; padding-top: 7px; border-top: 1px dashed var(--border); line-height: 1.65; font-size: 13px; }
-    .rem-g3, .rem-g4 { color: var(--g3); font-weight: 800; text-transform: uppercase; }
-    .rem-g2 { color: var(--g2); font-weight: 700; }
-    .rem-g1 { color: var(--g1); font-weight: 400; }
-    .rem-item { display: inline-block; margin-right: 8px; cursor: pointer; }
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 11px 12px; margin-bottom: 8px;
+    }
+    .rubric-meta { font-size: 12px; color: var(--muted); margin-top: 3px; }
     .matrix-wrap { overflow-x: auto; background: var(--card); border: 1px solid var(--border); border-radius: 10px; }
     table { border-collapse: collapse; width: 100%; font-size: 12px; }
     th, td { border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); padding: 7px 6px; text-align: center; }
     th:first-child, td:first-child { text-align: left; position: sticky; left: 0; background: var(--card); min-width: 145px; max-width: 185px; }
     .g-cell-3, .g-cell-4 { color: var(--g3); font-weight: 800; }
-    .g-cell-2 { color: var(--g2); font-weight: 700; }
+    .g-cell-2 { color: var(--g2); font-weight: 700; font-style: italic; }
     .g-cell-1 { color: var(--g1); }
     .status { text-align: center; padding: 26px 12px; color: var(--muted); font-size: 14px; }
     .hidden { display: none; }
@@ -143,8 +155,7 @@
 
   <main class="container">
     <section id="view-browse">
-      <input id="chapFilter" class="search-box" type="search" placeholder="Type chapter or sub-rubric..." />
-      <div id="breadcrumbs" class="chips"></div>
+      <input id="chapFilter" class="search-box" type="search" placeholder="Type chapter or rubric in this chapter..." />
       <div id="browseList"></div>
     </section>
 
@@ -204,7 +215,7 @@
 
     const state = {
       manifest: [], remedies: {}, currentRep: null, rubrics: [], byId: new Map(),
-      tree: null, navPath: [], browseLimit: 120,
+      chapters: [], activeChapter: null, page: 0, pageSize: 50,
       clipboard: JSON.parse(localStorage.getItem('rep_clip') || '[]'),
       bookmarks: JSON.parse(localStorage.getItem('rep_bm') || '[]'),
       minGrade: 1, searchLimit: 60, remLimit: 60
@@ -224,8 +235,7 @@
         req.onsuccess = () => {
           const tx = req.result.transaction('kv', 'readonly');
           const g = tx.objectStore('kv').get(key);
-          g.onsuccess = () => res(g.result);
-          g.onerror = () => res(null);
+          g.onsuccess = () => res(g.result); g.onerror = () => res(null);
         };
         req.onerror = () => res(null);
       });
@@ -236,8 +246,7 @@
         req.onupgradeneeded = () => req.result.createObjectStore('kv');
         req.onsuccess = () => {
           const tx = req.result.transaction('kv', 'readwrite');
-          tx.objectStore('kv').put(val, key);
-          tx.oncomplete = () => res();
+          tx.objectStore('kv').put(val, key); tx.oncomplete = () => res();
         };
         req.onerror = () => res();
       });
@@ -255,46 +264,40 @@
       $('browseList').innerHTML = '<div class="status">Loading repertory database...</div>';
       try {
         const [manifest, remedies] = await Promise.all([
-          fetchCached('data/manifest.json'),
-          fetchCached('data/remedies.json')
+          fetchCached('data/manifest.json'), fetchCached('data/remedies.json')
         ]);
-        state.manifest = manifest;
-        state.remedies = remedies;
+        state.manifest = manifest; state.remedies = remedies;
         $('repSelect').innerHTML = manifest.map(m =>
           `<option value="${m.abbrev}">${m.title} (${m.count.toLocaleString()})</option>`
         ).join('');
         const kent = manifest.find(m => m.abbrev.toLowerCase() === 'kent')
-          || manifest.find(m => m.abbrev.toLowerCase().includes('kent'))
-          || manifest[0];
-        if (kent) {
-          $('repSelect').value = kent.abbrev;
-          await loadRepertory(kent.abbrev);
-        }
+          || manifest.find(m => m.abbrev.toLowerCase().includes('kent')) || manifest[0];
+        if (kent) { $('repSelect').value = kent.abbrev; await loadRepertory(kent.abbrev); }
         updateBadges();
       } catch (e) {
         $('browseList').innerHTML = '<div class="status">Could not load database yet. Please refresh in a moment.</div>';
       }
     }
 
-    function buildTree(rubrics) {
-      const root = { name: 'Chapters', children: new Map(), rubric: null, count: 0 };
+    function indexChapters(rubrics) {
+      const map = new Map();
       for (const r of rubrics) {
-        const rawPath = r[2] || r[3] || '';
-        const parts = rawPath.split(',').map(s => s.trim()).filter(Boolean);
-        if (!parts.length) continue;
-        let cur = root;
-        cur.count += 1;
-        for (const part of parts) {
-          const key = part.toLowerCase();
-          if (!cur.children.has(key)) {
-            cur.children.set(key, { name: part, children: new Map(), rubric: null, count: 0 });
-          }
-          cur = cur.children.get(key);
-          cur.count += 1;
-        }
-        cur.rubric = r;
+        const raw = r[2] || r[3] || '';
+        const comma = raw.indexOf(',');
+        const chap = (comma >= 0 ? raw.slice(0, comma) : raw).trim();
+        if (!chap) continue;
+        const key = chap.toLowerCase();
+        if (!map.has(key)) map.set(key, { key, name: chap, items: [] });
+        map.get(key).items.push(r);
       }
-      return root;
+      const list = [...map.values()].sort((a, b) => {
+        const ia = CHAPTER_ORDER.indexOf(a.key), ib = CHAPTER_ORDER.indexOf(b.key);
+        if (ia !== -1 && ib !== -1) return ia - ib;
+        if (ia !== -1) return -1; if (ib !== -1) return 1;
+        return a.name.localeCompare(b.name);
+      });
+      list.forEach(c => c.items.sort((a, b) => (a[2] || a[3]).localeCompare(b[2] || b[3])));
+      return list;
     }
 
     async function loadRepertory(abbrev) {
@@ -303,125 +306,119 @@
       state.currentRep = info;
       $('browseList').innerHTML = `<div class="status">Indexing ${info.title}...</div>`;
       const raw = await fetchCached('data/' + info.file);
-      state.rubrics = raw;
-      state.byId.clear();
+      state.rubrics = raw; state.byId.clear();
       for (const r of raw) state.byId.set(r[0], r);
-      state.tree = buildTree(raw);
-      state.navPath = [];
-      state.browseLimit = 120;
-      $('chapFilter').value = '';
+      state.chapters = indexChapters(raw);
+      state.activeChapter = null; state.page = 0; $('chapFilter').value = '';
       renderBrowse();
       if ($('searchInput').value.trim()) renderSearch();
     }
 
     $('repSelect').onchange = e => loadRepertory(e.target.value);
-
-    function esc(s) {
-      return String(s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-    }
+    function esc(s) { return String(s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
     function rubricLabel(r) { return r[2] || r[3] || ('Rubric #' + r[0]); }
 
-    function renderRubricCard(r) {
-      const id = r[0], path = rubricLabel(r), rems = r[4] || [];
+    function formatInlineRemedies(rems) {
+      if (!rems || !rems.length) return '';
+      return rems.slice().sort((a,b) => {
+        const ra = (state.remedies[a[0]] || {}).a || '';
+        const rb = (state.remedies[b[0]] || {}).a || '';
+        return ra.localeCompare(rb);
+      }).map(([rid, w]) => {
+        const rem = state.remedies[rid] || { a: '#' + rid, n: '' };
+        const cls = w >= 3 ? 'rem-g3' : w === 2 ? 'rem-g2' : 'rem-g1';
+        const label = w === 1 ? rem.a.toLowerCase() : rem.a;
+        return `<span class="rem-item ${cls}" title="${esc(rem.n)}" onclick="lookupRemedy('${esc(rem.a)}')">${esc(label)}</span>`;
+      }).join('');
+    }
+
+    function formatRubricTitle(r, stripChap) {
+      let full = rubricLabel(r);
+      if (stripChap && state.activeChapter) {
+        const prefix = state.activeChapter.name + ',';
+        if (full.toLowerCase().startsWith(prefix.toLowerCase())) full = full.slice(prefix.length).trim();
+      }
+      const parts = full.split(',').map(s => s.trim()).filter(Boolean);
+      if (!parts.length) return `<strong>${esc(rubricLabel(r))}</strong>`;
+      return `<strong>${esc(parts[0].toUpperCase())}</strong>` +
+        (parts.length > 1 ? ` <span class="rubric-sub">· ${esc(parts.slice(1).join(' › '))}</span>` : '');
+    }
+
+    function renderBookEntry(r, stripChap) {
+      const id = r[0], rems = r[4] || [];
       const clipKey = `${state.currentRep.abbrev}:${id}`;
       const isAdded = state.clipboard.some(c => c.key === clipKey);
       const isBm = state.bookmarks.some(b => b.key === clipKey);
-      const remHtml = rems.slice().sort((a,b) => b[1] - a[1]).map(([rid, w]) => {
-        const rem = state.remedies[rid] || { a: '#' + rid, n: '' };
-        const cls = w >= 3 ? 'rem-g3' : w === 2 ? 'rem-g2' : 'rem-g1';
-        return `<span class="rem-item ${cls}" title="${esc(rem.n)}" onclick="lookupRemedy('${esc(rem.a)}')">${esc(rem.a)}</span>`;
-      }).join('');
+      const lastWord = rubricLabel(r).split(',').pop().trim().split(/\s+/)[0] || '';
       return `
-        <div class="card">
+        <div class="book-entry">
           <div class="rubric-head">
-            <div style="flex:1">
-              <div class="rubric-path">${esc(path)}</div>
-              <div class="rubric-meta">${rems.length} remedies</div>
-            </div>
+            <div class="rubric-title">${formatRubricTitle(r, stripChap)}</div>
             <div style="display:flex;gap:4px;">
               <button class="btn-sm ${isBm ? 'added' : ''}" onclick="toggleBm(${id})">${isBm ? '★' : '☆'}</button>
               <button class="btn-sm ${isAdded ? 'added' : ''}" onclick="toggleClip(${id})">${isAdded ? '✓' : '+ Case'}</button>
             </div>
           </div>
-          ${rems.length ? `<div class="rems-wrap">${remHtml}</div>` : ''}
+          ${rems.length
+            ? `<div class="rems-inline">${formatInlineRemedies(rems)}</div>`
+            : `<div class="xref" onclick="quickSearch('${esc(lastWord).replace(/'/g, "\\'")}')">↗ Cross-reference / heading — tap to search "${esc(lastWord)}"</div>`
+          }
         </div>
       `;
     }
 
-    function getNodeAt(pathKeys) {
-      let cur = state.tree;
-      for (const k of pathKeys) {
-        if (!cur || !cur.children.has(k)) return null;
-        cur = cur.children.get(k);
-      }
-      return cur;
-    }
-
-    function sortEntries(entries, isRoot) {
-      return entries.sort((a, b) => {
-        if (isRoot) {
-          const ia = CHAPTER_ORDER.indexOf(a[0]);
-          const ib = CHAPTER_ORDER.indexOf(b[0]);
-          if (ia !== -1 && ib !== -1) return ia - ib;
-          if (ia !== -1) return -1;
-          if (ib !== -1) return 1;
-        }
-        return a[1].name.localeCompare(b[1].name);
-      });
-    }
-
     function renderBrowse() {
-      if (!state.tree) return;
-      const isRoot = state.navPath.length === 0;
-      $('backBtn').classList.toggle('hidden', isRoot);
-
-      const crumbs = [`<button class="chip ${isRoot ? 'active' : ''}" onclick="jumpPath(-1)">Chapters</button>`];
-      let walk = state.tree;
-      state.navPath.forEach((k, i) => {
-        walk = walk && walk.children.get(k);
-        const label = walk ? walk.name.slice(0, 20) : k;
-        crumbs.push(`<button class="chip ${i === state.navPath.length - 1 ? 'active' : ''}" onclick="jumpPath(${i})">${esc(label)}</button>`);
-      });
-      $('breadcrumbs').innerHTML = crumbs.join('');
-      $('subTitle').textContent = isRoot ? 'Chapters' : (walk ? walk.name : 'Sub-rubrics');
-
-      const node = getNodeAt(state.navPath);
-      if (!node) return;
       const q = $('chapFilter').value.trim().toLowerCase();
-      let entries = sortEntries([...node.children.entries()], isRoot);
-      if (q) entries = entries.filter(([, child]) => child.name.toLowerCase().includes(q));
-
-      let html = '';
-      if (node.rubric && (node.rubric[4] || []).length) {
-        html += renderRubricCard(node.rubric);
-      }
-      const slice = entries.slice(0, state.browseLimit);
-      if (slice.length) {
-        html += '<div class="chapter-list">' + slice.map(([key, child]) => {
-          const sub = child.children.size;
-          const remCnt = child.rubric ? (child.rubric[4] || []).length : 0;
-          const icon = isRoot ? `<div class="chap-icon">${CHAPTER_ICONS[key] || '📖'}</div>` : '';
-          const meta = sub > 0 ? `${sub} sub-rubrics · ${child.count.toLocaleString()} entries` : `${remCnt} remedies`;
-          return `<button class="chapter-row" onclick="pushPath('${esc(key).replace(/'/g, "\\'")}')">
-            ${icon}
+      if (!state.activeChapter) {
+        $('backBtn').classList.add('hidden');
+        $('subTitle').textContent = 'Chapters';
+        $('chapFilter').placeholder = 'Type chapter name...';
+        let list = state.chapters;
+        if (q) list = list.filter(c => c.name.toLowerCase().includes(q));
+        $('browseList').innerHTML = list.length ? '<div class="chapter-list">' + list.map(c => `
+          <button class="chapter-row" onclick="openChapter('${esc(c.key).replace(/'/g, "\\'")}')">
+            <div class="chap-icon">${CHAPTER_ICONS[c.key] || '📖'}</div>
             <div class="chap-info">
-              <div class="chap-name">${isRoot ? esc(child.name.toUpperCase()) : esc(child.name)}</div>
-              <div class="chap-meta">${meta}</div>
+              <div class="chap-name">${esc(c.name.toUpperCase())}</div>
+              <div class="chap-meta">${c.items.length.toLocaleString()} rubrics</div>
             </div>
             <div class="chap-arrow">➜</div>
-          </button>`;
-        }).join('') + '</div>';
+          </button>
+        `).join('') + '</div>' : '<div class="status">No matching chapter.</div>';
+      } else {
+        $('backBtn').classList.remove('hidden');
+        $('subTitle').textContent = state.activeChapter.name.toUpperCase();
+        $('chapFilter').placeholder = `Filter inside ${state.activeChapter.name}...`;
+        let items = state.activeChapter.items;
+        if (q) {
+          const terms = q.split(/\s+/).filter(Boolean);
+          items = items.filter(r => terms.every(t => rubricLabel(r).toLowerCase().includes(t)));
+        }
+        const totalPages = Math.max(1, Math.ceil(items.length / state.pageSize));
+        if (state.page >= totalPages) state.page = totalPages - 1;
+        const slice = items.slice(state.page * state.pageSize, (state.page + 1) * state.pageSize);
+        const pager = `
+          <div class="pager">
+            <button class="btn-sm" ${state.page === 0 ? 'disabled' : ''} onclick="setPage(${state.page - 1})">← Prev</button>
+            <span class="rubric-meta">Page ${state.page + 1} of ${totalPages} (${items.length.toLocaleString()} rubrics)</span>
+            <button class="btn-sm" ${state.page >= totalPages - 1 ? 'disabled' : ''} onclick="setPage(${state.page + 1})">Next →</button>
+          </div>
+        `;
+        $('browseList').innerHTML = slice.length
+          ? pager + `<div class="book-sheet">` + slice.map(r => renderBookEntry(r, true)).join('') + `</div>` + pager
+          : '<div class="status">No matching rubrics in this chapter.</div>';
       }
-      if (entries.length > slice.length) {
-        html += `<button class="btn-sm" style="width:100%;margin-top:8px;padding:10px;" onclick="state.browseLimit+=120;renderBrowse()">Show more (${entries.length - slice.length} remaining)</button>`;
-      }
-      $('browseList').innerHTML = html || '<div class="status">No matching chapters or rubrics.</div>';
     }
 
-    $('chapFilter').oninput = () => { state.browseLimit = 120; renderBrowse(); };
-    $('backBtn').onclick = () => { if (state.navPath.length) { state.navPath.pop(); $('chapFilter').value = ''; renderBrowse(); } };
-    window.pushPath = key => { state.navPath.push(key); $('chapFilter').value = ''; state.browseLimit = 120; renderBrowse(); window.scrollTo(0, 0); };
-    window.jumpPath = idx => { state.navPath = idx < 0 ? [] : state.navPath.slice(0, idx + 1); $('chapFilter').value = ''; state.browseLimit = 120; renderBrowse(); };
+    window.openChapter = key => {
+      state.activeChapter = state.chapters.find(c => c.key === key) || null;
+      state.page = 0; $('chapFilter').value = ''; renderBrowse(); window.scrollTo(0, 0);
+    };
+    window.setPage = p => { state.page = Math.max(0, p); renderBrowse(); window.scrollTo(0, 0); };
+    $('backBtn').onclick = () => { state.activeChapter = null; state.page = 0; $('chapFilter').value = ''; renderBrowse(); };
+    $('chapFilter').oninput = () => { state.page = 0; renderBrowse(); };
+
+    window.quickSearch = word => { switchTab('search'); $('searchInput').value = word; renderSearch(); };
 
     window.toggleClip = id => {
       const r = state.byId.get(id); if (!r) return;
@@ -456,10 +453,7 @@
 
     function renderSearch() {
       const q = $('searchInput').value.trim().toLowerCase();
-      if (q.length < 2) {
-        $('searchResults').innerHTML = '<div class="status">Type at least 2 letters to search across all rubrics.</div>';
-        return;
-      }
+      if (q.length < 2) { $('searchResults').innerHTML = '<div class="status">Type at least 2 letters to search across all rubrics.</div>'; return; }
       const terms = q.split(/\s+/).filter(Boolean);
       const matches = [];
       for (const r of state.rubrics) {
@@ -472,8 +466,8 @@
       const slice = matches.slice(0, state.searchLimit);
       $('searchResults').innerHTML =
         `<div class="rubric-meta" style="margin-bottom:8px;">${matches.length.toLocaleString()} matching rubrics</div>` +
-        slice.map(renderRubricCard).join('') +
-        (matches.length > slice.length ? `<button class="btn-sm" style="width:100%;padding:10px;" onclick="state.searchLimit+=60;renderSearch()">Load more results</button>` : '');
+        (slice.length ? `<div class="book-sheet">` + slice.map(r => renderBookEntry(r, false)).join('') + `</div>` : '') +
+        (matches.length > slice.length ? `<button class="btn-sm" style="width:100%;margin-top:8px;padding:10px;" onclick="state.searchLimit+=60;renderSearch()">Load more results</button>` : '');
     }
 
     let searchTimer;
@@ -487,30 +481,20 @@
     };
 
     function renderBookmarks() {
-      if (!state.bookmarks.length) {
-        $('bookmarkList').innerHTML = '<div class="status">No bookmarks yet. Tap ☆ on any rubric to save it here.</div>';
-        return;
-      }
-      $('bookmarkList').innerHTML = state.bookmarks.map(b => renderRubricCard([b.id, null, b.path, b.path, b.rems])).join('');
+      if (!state.bookmarks.length) { $('bookmarkList').innerHTML = '<div class="status">No bookmarks yet. Tap ☆ on any rubric to save it here.</div>'; return; }
+      $('bookmarkList').innerHTML = `<div class="book-sheet">` + state.bookmarks.map(b => renderBookEntry([b.id, null, b.path, b.path, b.rems], false)).join('') + `</div>`;
     }
 
     function renderClip() {
       if (!state.clipboard.length) {
         $('clipRubrics').innerHTML = '<div class="status">Clipboard is empty. Tap "+ Case" on any rubric to repertorize.</div>';
-        $('matrixBox').innerHTML = '';
-        return;
+        $('matrixBox').innerHTML = ''; return;
       }
       $('clipRubrics').innerHTML = state.clipboard.map((c, idx) => `
         <div class="card">
           <div class="rubric-head">
-            <div>
-              <div class="rubric-path">${esc(c.path)}</div>
-              <div class="rubric-meta">${esc(c.rep)} · ${c.rems.length} remedies · Weight: ${c.weight}x</div>
-            </div>
-            <div style="display:flex;gap:4px;">
-              <button class="btn-sm" onclick="cycleWeight(${idx})">${c.weight}x</button>
-              <button class="btn-sm" onclick="removeClip(${idx})">✕</button>
-            </div>
+            <div><div class="rubric-title"><strong>${esc(c.path)}</strong></div><div class="rubric-meta">${esc(c.rep)} · ${c.rems.length} remedies · Weight: ${c.weight}x</div></div>
+            <div style="display:flex;gap:4px;"><button class="btn-sm" onclick="cycleWeight(${idx})">${c.weight}x</button><button class="btn-sm" onclick="removeClip(${idx})">✕</button></div>
           </div>
         </div>
       `).join('');
@@ -519,8 +503,7 @@
         for (const [rid, w] of c.rems) {
           if (!scores.has(rid)) scores.set(rid, { rid, total: 0, cov: 0, grades: {} });
           const s = scores.get(rid);
-          s.total += w * c.weight; s.cov += 1;
-          s.grades[rIdx] = Math.max(s.grades[rIdx] || 0, w);
+          s.total += w * c.weight; s.cov += 1; s.grades[rIdx] = Math.max(s.grades[rIdx] || 0, w);
         }
       });
       const top = [...scores.values()].sort((a,b) => (b.cov - a.cov) || (b.total - a.total)).slice(0, 25);
@@ -564,8 +547,8 @@
     function switchTab(tab) {
       ['browse','search','clip','remedy','bookmarks'].forEach(t => $(`view-${t}`).classList.toggle('hidden', t !== tab));
       document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-      $('backBtn').classList.toggle('hidden', tab !== 'browse' || state.navPath.length === 0);
-      const titles = { browse:'Chapters', search:'Search Rubrics', clip:'Clipboard', remedy:'Remedy List', bookmarks:'Bookmarks' };
+      $('backBtn').classList.toggle('hidden', tab !== 'browse' || !state.activeChapter);
+      const titles = { browse: state.activeChapter ? state.activeChapter.name.toUpperCase() : 'Chapters', search:'Search Rubrics', clip:'Clipboard', remedy:'Remedy List', bookmarks:'Bookmarks' };
       $('subTitle').textContent = titles[tab] || 'Repertory';
       if (tab === 'clip') renderClip();
       if (tab === 'bookmarks') renderBookmarks();
