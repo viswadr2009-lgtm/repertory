@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Repertory" />
+  <title>Homeopathic Repertory</title>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --primary: #0f766e;
+      --primary-soft: #ccfbf1;
+      --g3: #b91c1c;
+      --g2: #1d4ed8;
+      --g1: #334155;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bot: env(safe-area-inset-bottom, 0px);
+    }
+    body.dark {
+      --bg: #0b1120;
+      --card: #1e293b;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --border: #334155;
+      --primary: #14b8a6;
+      --primary-soft: #134e4a;
+      --g3: #f87171;
+      --g2: #60a5fa;
+      --g1: #cbd5e1;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      background: var(--bg); color: var(--text);
+      padding-top: calc(56px + var(--safe-top));
+      padding-bottom: calc(70px + var(--safe-bot));
+    }
+    header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+      padding: calc(10px + var(--safe-top)) 14px 10px;
+      background: var(--card); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
+    }
+    header h1 { font-size: 16px; margin: 0; font-weight: 700; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    select, input, button { font-family: inherit; font-size: 14px; }
+    .rep-select {
+      max-width: 155px; padding: 6px 8px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--bg); color: var(--text);
+    }
+    .icon-btn {
+      border: 1px solid var(--border); background: var(--bg); color: var(--text);
+      border-radius: 8px; padding: 6px 10px; font-weight: 600; cursor: pointer;
+    }
+    .container { padding: 12px; max-width: 820px; margin: 0 auto; }
+    .search-box {
+      width: 100%; padding: 11px 14px; border-radius: 12px;
+      border: 1px solid var(--border); background: var(--card); color: var(--text);
+      font-size: 15px; margin-bottom: 10px;
+    }
+    .chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 6px; }
+    .chip {
+      white-space: nowrap; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 600;
+      background: var(--card); border: 1px solid var(--border); color: var(--text); cursor: pointer;
+    }
+    .chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 12px; margin-bottom: 10px;
+    }
+    .rubric-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .rubric-path { font-size: 15px; font-weight: 600; line-height: 1.35; flex: 1; }
+    .rubric-meta { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .btn-sm {
+      padding: 6px 10px; border-radius: 8px; border: none; font-size: 12px; font-weight: 700;
+      background: var(--primary-soft); color: var(--primary); cursor: pointer; white-space: nowrap;
+    }
+    .btn-sm.added { background: var(--primary); color: #fff; }
+    .rems-wrap { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border); line-height: 1.65; font-size: 14px; }
+    .rem-g3, .rem-g4 { color: var(--g3); font-weight: 800; text-transform: uppercase; }
+    .rem-g2 { color: var(--g2); font-weight: 700; }
+    .rem-g1 { color: var(--g1); font-weight: 400; }
+    .rem-item { display: inline-block; margin-right: 8px; cursor: pointer; }
+    .chapter-btn {
+      width: 100%; text-align: left; padding: 13px 14px; margin-bottom: 8px;
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      color: var(--text); font-weight: 600; display: flex; justify-content: space-between; cursor: pointer;
+    }
+    .matrix-wrap { overflow-x: auto; background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+    table { border-collapse: collapse; width: 100%; font-size: 13px; }
+    th, td { border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); padding: 8px 6px; text-align: center; }
+    th:first-child, td:first-child { text-align: left; position: sticky; left: 0; background: var(--card); min-width: 150px; max-width: 190px; }
+    .g-cell-3, .g-cell-4 { color: var(--g3); font-weight: 800; }
+    .g-cell-2 { color: var(--g2); font-weight: 700; }
+    .g-cell-1 { color: var(--g1); }
+    nav {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+      background: var(--card); border-top: 1px solid var(--border);
+      display: flex; padding-bottom: var(--safe-bot);
+    }
+    nav button {
+      flex: 1; padding: 10px 4px; border: none; background: transparent; color: var(--muted);
+      font-size: 11px; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer;
+    }
+    nav button.active { color: var(--primary); }
+    .badge {
+      background: var(--primary); color: #fff; border-radius: 999px;
+      padding: 1px 6px; font-size: 10px; margin-left: 3px;
+    }
+    .status { text-align: center; padding: 24px 12px; color: var(--muted); font-size: 14px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Repertory</h1>
+    <select id="repSelect" class="rep-select"></select>
+    <button class="icon-btn" id="themeBtn">◐</button>
+  </header>
+
+  <main class="container">
+    <section id="view-browse">
+      <div id="breadcrumbs" class="chips"></div>
+      <div id="browseList"></div>
+    </section>
+
+    <section id="view-search" class="hidden">
+      <input id="searchInput" class="search-box" type="search" placeholder="Search rubrics (e.g. anxiety night, headache right)..." />
+      <div class="chips" id="gradeFilters">
+        <button class="chip active" data-min="1">All Grades</button>
+        <button class="chip" data-min="2">Grade 2+</button>
+        <button class="chip" data-min="3">Grade 3 Only</button>
+      </div>
+      <div id="searchResults"></div>
+    </section>
+
+    <section id="view-clip" class="hidden">
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+        <button class="icon-btn" id="shareCaseBtn">Share / Copy Case</button>
+        <button class="icon-btn" id="clearClipBtn">Clear Case</button>
+      </div>
+      <div id="clipRubrics"></div>
+      <h3 style="font-size:15px;margin:14px 0 8px;">Repertorization Grid</h3>
+      <div id="matrixBox" class="matrix-wrap"></div>
+    </section>
+
+    <section id="view-remedy" class="hidden">
+      <input id="remSearchInput" class="search-box" type="search" placeholder="Search remedy (e.g. Acon, Pulsatilla, Sulph)..." />
+      <div id="remResults"></div>
+    </section>
+
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin-top:24px;">
+      Powered by open-source <a href="https://www.oorep.com/" target="_blank" style="color:var(--primary);">OOREP</a> data (GPL-3.0). Educational &amp; reference tool only.
+    </p>
+  </main>
+
+  <nav>
+    <button data-tab="browse" class="active"><span>📖</span>Browse</button>
+    <button data-tab="search"><span>🔍</span>Search</button>
+    <button data-tab="clip"><span>📋</span>Case <span id="clipBadge" class="badge hidden">0</span></button>
+    <button data-tab="remedy"><span>💊</span>Remedies</button>
+  </nav>
+
+  <script>
+    const state = {
+      manifest: [],
+      remedies: {},
+      currentRep: null,
+      rubrics: [],
+      byId: new Map(),
+      children: new Map(),
+      roots: [],
+      navStack: [],
+      clipboard: JSON.parse(localStorage.getItem('rep_clip') || '[]'),
+      minGrade: 1,
+      searchLimit: 60,
+      remLimit: 60
+    };
+
+    const $ = id => document.getElementById(id);
+    if (localStorage.getItem('rep_dark') === '1') document.body.classList.add('dark');
+    $('themeBtn').onclick = () => {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('rep_dark', document.body.classList.contains('dark') ? '1' : '0');
+    };
+
+    // IndexedDB offline cache
+    function idbGet(key) {
+      return new Promise(res => {
+        const req = indexedDB.open('rep_cache', 1);
+        req.onupgradeneeded = () => req.result.createObjectStore('kv');
+        req.onsuccess = () => {
+          const tx = req.result.transaction('kv', 'readonly');
+          const g = tx.objectStore('kv').get(key);
+          g.onsuccess = () => res(g.result);
+          g.onerror = () => res(null);
+        };
+        req.onerror = () => res(null);
+      });
+    }
+    function idbSet(key, val) {
+      return new Promise(res => {
+        const req = indexedDB.open('rep_cache', 1);
+        req.onupgradeneeded = () => req.result.createObjectStore('kv');
+        req.onsuccess = () => {
+          const tx = req.result.transaction('kv', 'readwrite');
+          tx.objectStore('kv').put(val, key);
+          tx.oncomplete = () => res();
+        };
+        req.onerror = () => res();
+      });
+    }
+    async function fetchCached(url) {
+      const cached = await idbGet(url);
+      if (cached) return cached;
+      const r = await fetch(url);
+      const data = await r.json();
+      idbSet(url, data);
+      return data;
+    }
+
+    async function init() {
+      $('browseList').innerHTML = '<div class="status">Loading repertory index...</div>';
+      try {
+        const [manifest, remedies] = await Promise.all([
+          fetchCached('data/manifest.json'),
+          fetchCached('data/remedies.json')
+        ]);
+        state.manifest = manifest;
+        state.remedies = remedies;
+        $('repSelect').innerHTML = manifest.map(m =>
+          `<option value="${m.abbrev}">${m.title} (${m.count.toLocaleString()})</option>`
+        ).join('');
+        const kent = manifest.find(m => m.abbrev.toLowerCase().includes('kent')) || manifest[0];
+        if (kent) {
+          $('repSelect').value = kent.abbrev;
+          await loadRepertory(kent.abbrev);
+        }
+        updateClipBadge();
+      } catch (e) {
+        $('browseList').innerHTML = '<div class="status">Could not load database yet. Please refresh in a moment.</div>';
+      }
+    }
+
+    async function loadRepertory(abbrev) {
+      const info = state.manifest.find(m => m.abbrev === abbrev);
+      if (!info) return;
+      state.currentRep = info;
+      $('browseList').innerHTML = `<div class="status">Loading ${info.title}...</div>`;
+      const raw = await fetchCached('data/' + info.file);
+      state.rubrics = raw;
+      state.byId.clear();
+      state.children.clear();
+      state.roots = [];
+      for (const r of raw) {
+        state.byId.set(r[0], r);
+        const pid = r[1];
+        if (pid === null || pid === undefined || pid === 0) {
+          state.roots.push(r);
+        } else {
+          if (!state.children.has(pid)) state.children.set(pid, []);
+          state.children.get(pid).push(r);
+        }
+      }
+      if (state.roots.length === 0) state.roots = raw.slice(0, 100);
+      state.navStack = [];
+      renderBrowse();
+      if ($('searchInput').value.trim()) renderSearch();
+    }
+
+    $('repSelect').onchange = e => loadRepertory(e.target.value);
+
+    function esc(s) {
+      return String(s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    }
+
+    function rubricLabel(r) {
+      return r[2] || r[3] || ('Rubric #' + r[0]);
+    }
+
+    function renderRubricCard(r) {
+      const id = r[0], path = rubricLabel(r), rems = r[4] || [];
+      const clipKey = `${state.currentRep.abbrev}:${id}`;
+      const isAdded = state.clipboard.some(c => c.key === clipKey);
+      const kids = state.children.get(id) || [];
+      const remHtml = rems.slice().sort((a,b) => b[1] - a[1]).map(([rid, w]) => {
+        const rem = state.remedies[rid] || { a: '#' + rid, n: '' };
+        const cls = w >= 3 ? 'rem-g3' : w === 2 ? 'rem-g2' : 'rem-g1';
+        return `<span class="rem-item ${cls}" title="${esc(rem.n)}" onclick="lookupRemedy('${esc(rem.a)}')">${esc(rem.a)}</span>`;
+      }).join('');
+      return `
+        <div class="card">
+          <div class="rubric-head">
+            <div style="flex:1">
+              <div class="rubric-path">${esc(path)}</div>
+              <div class="rubric-meta">${rems.length} remedies ${kids.length ? `· ${kids.length} sub-rubrics` : ''}</div>
+            </div>
+            <button class="btn-sm ${isAdded ? 'added' : ''}" onclick="toggleClip(${id})">${isAdded ? '✓ Added' : '+ Case'}</button>
+          </div>
+          ${kids.length ? `<div style="margin-top:8px;"><button class="icon-btn" style="font-size:12px;" onclick="openNode(${id})">Open ${kids.length} sub-rubrics ›</button></div>` : ''}
+          ${rems.length ? `<div class="rems-wrap">${remHtml}</div>` : ''}
+        </div>
+      `;
+    }
+
+    function renderBrowse() {
+      const crumbs = [`<button class="chip ${state.navStack.length === 0 ? 'active' : ''}" onclick="jumpStack(-1)">Chapters</button>`];
+      state.navStack.forEach((id, i) => {
+        const r = state.byId.get(id);
+        const label = r ? (r[3] || r[2] || '').slice(0, 22) : id;
+        crumbs.push(`<button class="chip ${i === state.navStack.length - 1 ? 'active' : ''}" onclick="jumpStack(${i})">${esc(label)}</button>`);
+      });
+      $('breadcrumbs').innerHTML = crumbs.join('');
+
+      const list = state.navStack.length === 0
+        ? state.roots
+        : (state.children.get(state.navStack[state.navStack.length - 1]) || []);
+
+      if (state.navStack.length === 0) {
+        $('browseList').innerHTML = list.map(r => {
+          const kids = (state.children.get(r[0]) || []).length;
+          return `<button class="chapter-btn" onclick="openNode(${r[0]})"><span>${esc(r[3] || r[2])}</span><span style="color:var(--muted)">${kids} ›</span></button>`;
+        }).join('');
+      } else {
+        const parent = state.byId.get(state.navStack[state.navStack.length - 1]);
+        let html = parent && (parent[4] || []).length ? renderRubricCard(parent) : '';
+        html += list.slice(0, 120).map(renderRubricCard).join('');
+        $('browseList').innerHTML = html || '<div class="status">No sub-rubrics here.</div>';
+      }
+    }
+
+    window.openNode = id => { state.navStack.push(id); renderBrowse(); window.scrollTo(0, 0); };
+    window.jumpStack = idx => { state.navStack = idx < 0 ? [] : state.navStack.slice(0, idx + 1); renderBrowse(); };
+
+    window.toggleClip = id => {
+      const r = state.byId.get(id);
+      if (!r) return;
+      const key = `${state.currentRep.abbrev}:${id}`;
+      const idx = state.clipboard.findIndex(c => c.key === key);
+      if (idx >= 0) state.clipboard.splice(idx, 1);
+      else state.clipboard.push({ key, rep: state.currentRep.abbrev, path: rubricLabel(r), weight: 1, rems: r[4] || [] });
+      localStorage.setItem('rep_clip', JSON.stringify(state.clipboard));
+      updateClipBadge();
+      if (!$('view-browse').classList.contains('hidden')) renderBrowse();
+      if (!$('view-search').classList.contains('hidden')) renderSearch();
+      if (!$('view-clip').classList.contains('hidden')) renderClip();
+    };
+
+    function updateClipBadge() {
+      const b = $('clipBadge');
+      b.textContent = state.clipboard.length;
+      b.classList.toggle('hidden', state.clipboard.length === 0);
+    }
+
+    function renderSearch() {
+      const q = $('searchInput').value.trim().toLowerCase();
+      if (q.length < 2) {
+        $('searchResults').innerHTML = '<div class="status">Type at least 2 letters to search across all rubrics.</div>';
+        return;
+      }
+      const terms = q.split(/\s+/).filter(Boolean);
+      const matches = [];
+      for (const r of state.rubrics) {
+        const text = (r[2] + ' ' + r[3]).toLowerCase();
+        if (!terms.every(t => text.includes(t))) continue;
+        const rems = state.minGrade > 1 ? (r[4] || []).filter(x => x[1] >= state.minGrade) : (r[4] || []);
+        if (state.minGrade > 1 && rems.length === 0) continue;
+        matches.push(r);
+      }
+      const slice = matches.slice(0, state.searchLimit);
+      $('searchResults').innerHTML =
+        `<div class="rubric-meta" style="margin-bottom:8px;">${matches.length.toLocaleString()} matching rubrics</div>` +
+        slice.map(renderRubricCard).join('') +
+        (matches.length > slice.length ? `<button class="chapter-btn" style="justify-content:center" onclick="state.searchLimit+=60;renderSearch()">Load more results</button>` : '');
+    }
+
+    let searchTimer;
+    $('searchInput').oninput = () => {
+      state.searchLimit = 60;
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(renderSearch, 180);
+    };
+    $('gradeFilters').onclick = e => {
+      if (!e.target.dataset.min) return;
+      state.minGrade = Number(e.target.dataset.min);
+      [...$('gradeFilters').children].forEach(b => b.classList.toggle('active', b === e.target));
+      renderSearch();
+    };
+
+    function renderClip() {
+      if (state.clipboard.length === 0) {
+        $('clipRubrics').innerHTML = '<div class="status">Your case clipboard is empty. Tap "+ Case" on any rubric to repertorize.</div>';
+        $('matrixBox').innerHTML = '';
+        return;
+      }
+      $('clipRubrics').innerHTML = state.clipboard.map((c, idx) => `
+        <div class="card">
+          <div class="rubric-head">
+            <div>
+              <div class="rubric-path">${esc(c.path)}</div>
+              <div class="rubric-meta">${esc(c.rep)} · ${c.rems.length} remedies · Weight: ${c.weight}x</div>
+            </div>
+            <div style="display:flex;gap:4px;">
+              <button class="icon-btn" onclick="cycleWeight(${idx})">${c.weight}x</button>
+              <button class="icon-btn" onclick="removeClip(${idx})">✕</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      const scores = new Map();
+      state.clipboard.forEach((c, rIdx) => {
+        for (const [rid, w] of c.rems) {
+          if (!scores.has(rid)) scores.set(rid, { rid, total: 0, cov: 0, grades: {} });
+          const s = scores.get(rid);
+          s.total += w * c.weight;
+          s.cov += 1;
+          s.grades[rIdx] = Math.max(s.grades[rIdx] || 0, w);
+        }
+      });
+      const top = [...scores.values()].sort((a,b) => (b.cov - a.cov) || (b.total - a.total)).slice(0, 25);
+      $('matrixBox').innerHTML = `<table>
+        <thead><tr><th>Rubric (${state.clipboard.length})</th>${top.map(t => `<th>${esc((state.remedies[t.rid]||{a:t.rid}).a)}<br><small>${t.cov}/${state.clipboard.length} (${t.total})</small></th>`).join('')}</tr></thead>
+        <tbody>${state.clipboard.map((c, rIdx) => `<tr><td>${esc(c.path.slice(0, 42))}</td>${top.map(t => {
+          const g = t.grades[rIdx] || 0;
+          return `<td class="${g ? 'g-cell-'+g : ''}">${g || '·'}</td>`;
+        }).join('')}</tr>`).join('')}</tbody>
+      </table>`;
+    }
+
+    window.cycleWeight = idx => {
+      state.clipboard[idx].weight = (state.clipboard[idx].weight % 3) + 1;
+      localStorage.setItem('rep_clip', JSON.stringify(state.clipboard));
+      renderClip();
+    };
+    window.removeClip = idx => {
+      state.clipboard.splice(idx, 1);
+      localStorage.setItem('rep_clip', JSON.stringify(state.clipboard));
+      updateClipBadge();
+      renderClip();
+    };
+    $('clearClipBtn').onclick = () => {
+      state.clipboard = [];
+      localStorage.setItem('rep_clip', '[]');
+      updateClipBadge();
+      renderClip();
+    };
+    $('shareCaseBtn').onclick = async () => {
+      if (!state.clipboard.length) return;
+      const lines = ['Homeopathic Case Repertorization:', ...state.clipboard.map((c,i) => `${i+1}. [${c.weight}x] ${c.path}`)];
+      const text = lines.join('\n');
+      if (navigator.share) await navigator.share({ title: 'Case Repertorization', text });
+      else { await navigator.clipboard.writeText(text); alert('Case copied to clipboard!'); }
+    };
+
+    window.lookupRemedy = abbrev => {
+      switchTab('remedy');
+      $('remSearchInput').value = abbrev;
+      renderRemedyLookup();
+    };
+
+    function renderRemedyLookup() {
+      const q = $('remSearchInput').value.trim().toLowerCase();
+      if (!q) {
+        $('remResults').innerHTML = '<div class="status">Enter a remedy abbreviation or full name to see its rubrics.</div>';
+        return;
+      }
+      const matchedIds = Object.entries(state.remedies)
+        .filter(([, v]) => v.a.toLowerCase().includes(q) || v.n.toLowerCase().includes(q))
+        .slice(0, 8);
+      if (!matchedIds.length) {
+        $('remResults').innerHTML = '<div class="status">No matching remedy found.</div>';
+        return;
+      }
+      const targetId = Number(matchedIds[0][0]);
+      const targetInfo = matchedIds[0][1];
+      const hits = [];
+      for (const r of state.rubrics) {
+        const found = (r[4] || []).find(x => x[0] === targetId);
+        if (found) hits.push({ r, w: found[1] });
+      }
+      hits.sort((a,b) => b.w - a.w);
+      $('remResults').innerHTML = `
+        <div class="card"><strong>${esc(targetInfo.a)}</strong> — ${esc(targetInfo.n)}<div class="rubric-meta">${hits.length.toLocaleString()} rubrics in ${esc(state.currentRep.title)}</div></div>
+        ${hits.slice(0, state.remLimit).map(h => `
+          <div class="card"><span class="rem-g${h.w}">Grade ${h.w}</span> · ${esc(rubricLabel(h.r))}</div>
+        `).join('')}
+      `;
+    }
+    $('remSearchInput').oninput = () => { state.remLimit = 60; renderRemedyLookup(); };
+
+    function switchTab(tab) {
+      ['browse','search','clip','remedy'].forEach(t => {
+        $(`view-${t}`).classList.toggle('hidden', t !== tab);
+      });
+      document.querySelectorAll('nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+      if (tab === 'clip') renderClip();
+    }
+    document.querySelectorAll('nav button').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
+
+    init();
+  </script>
+</body>
+</html>
