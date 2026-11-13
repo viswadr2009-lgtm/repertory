@@ -47,16 +47,20 @@
     .nav-item.active { background: var(--nav-active); color: #fff; }
     .nav-item .ico { font-size: 16px; line-height: 1; }
     .subbar {
-      background: var(--nav-sub); padding: 8px 10px;
-      display: flex; align-items: center; gap: 8px;
+      background: var(--nav-sub); padding: 7px 10px;
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
     }
-    .subbar-title { font-size: 14px; font-weight: 700; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .sub-btn {
       background: rgba(0,0,0,0.22); border: 1px solid rgba(255,255,255,0.25);
-      color: #fff; border-radius: 6px; padding: 5px 10px; font-size: 12px; font-weight: 600; cursor: pointer;
+      color: #fff; border-radius: 6px; padding: 5px 9px; font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .crumb-pills { display: flex; gap: 4px; overflow-x: auto; flex: 1; min-width: 100px; }
+    .crumb-pill {
+      background: #f1f5f9; color: #1e293b; border: none; border-radius: 6px;
+      padding: 4px 8px; font-size: 12px; font-weight: 700; white-space: nowrap; cursor: pointer;
     }
     .rep-select {
-      max-width: 155px; background: rgba(0,0,0,0.22); color: #fff;
+      max-width: 140px; background: rgba(0,0,0,0.22); color: #fff;
       border: 1px solid rgba(255,255,255,0.25); border-radius: 6px; padding: 5px 6px; font-size: 12px;
     }
     .badge {
@@ -73,20 +77,25 @@
     .chapter-list { background: var(--card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
     .chapter-row {
       width: 100%; background: var(--card); border: none; border-bottom: 1px solid var(--border);
-      padding: 10px 12px; display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px; display: flex; align-items: center; gap: 10px;
       color: var(--text); text-align: left; cursor: pointer;
     }
     .chapter-row:last-child { border-bottom: none; }
     .chap-icon {
-      width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
+      width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
       background: linear-gradient(135deg, #dbeafe, #e0f2fe);
-      display: flex; align-items: center; justify-content: center; font-size: 22px;
+      display: flex; align-items: center; justify-content: center; font-size: 21px;
       border: 1px solid var(--border);
     }
     body.dark .chap-icon { background: linear-gradient(135deg, #1e3a5f, #0f172a); }
     .chap-info { flex: 1; min-width: 0; }
-    .chap-name { font-size: 14px; font-weight: 700; letter-spacing: 0.3px; }
+    .chap-name { font-size: 14px; font-weight: 700; }
     .chap-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .count-circle {
+      min-width: 26px; height: 26px; padding: 0 7px; border-radius: 999px;
+      border: 1px solid var(--border); color: var(--muted);
+      display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0;
+    }
     .chap-arrow {
       width: 24px; height: 24px; border-radius: 999px; background: var(--muted); color: #fff;
       display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; opacity: 0.7;
@@ -99,7 +108,7 @@
     .chip.active { background: var(--nav-bg); color: #fff; border-color: var(--nav-bg); }
     .book-sheet {
       background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-      padding: 6px 12px;
+      padding: 6px 12px; margin-bottom: 10px;
     }
     .book-entry { padding: 10px 0; border-bottom: 1px solid var(--border); }
     .book-entry:last-child { border-bottom: none; }
@@ -147,7 +156,8 @@
     </div>
     <div class="subbar">
       <button class="sub-btn hidden" id="backBtn">↩ Back</button>
-      <span class="subbar-title" id="subTitle">Chapters</span>
+      <div class="crumb-pills" id="crumbPills"><button class="crumb-pill">Chapters</button></div>
+      <button class="sub-btn hidden" id="modeBtn">📖 Book</button>
       <select id="repSelect" class="rep-select"></select>
       <button class="sub-btn" id="themeBtn">◐</button>
     </div>
@@ -155,7 +165,7 @@
 
   <main class="container">
     <section id="view-browse">
-      <input id="chapFilter" class="search-box" type="search" placeholder="Type chapter or rubric in this chapter..." />
+      <input id="chapFilter" class="search-box" type="search" placeholder="Type chapter..." />
       <div id="browseList"></div>
     </section>
 
@@ -214,195 +224,82 @@
     };
 
     const XREF_MAP = {
-      abandoned: ['mind forsaken'],
-      abashed: ['mind embarrassment', 'mind mortification'],
-      ability: ['mind exertion mental', 'mind power mental'],
-      abroad: ['mind travelling desire'],
-      'absent-minded': ['mind abstraction', 'mind concentration difficult'],
-      absorbed: ['mind abstraction', 'mind thoughts'],
-      abusive: ['mind cursing', 'mind insulting'],
-      accompanied: ['mind company desire'],
-      accusations: ['mind reproaches'],
-      aching: ['pain'],
-      afraid: ['fear'],
-      aggravation: ['worse'],
-      amelioration: ['better'],
-      anger: ['mind irascibility', 'mind rage'],
-      anguish: ['mind anxiety', 'mind despair'],
-      apprehension: ['mind anxiety', 'mind fear'],
-      ashamed: ['mind embarrassment'],
-      avarice: ['mind greed'],
-      bashful: ['mind timidity'],
-      bewildered: ['mind confusion'],
-      bloated: ['abdomen distension'],
-      blushing: ['face redness'],
-      boasting: ['mind haughty'],
-      boredom: ['mind ennui'],
-      bruised: ['sore'],
-      calm: ['mind tranquil'],
-      capricious: ['mind changeable'],
-      careless: ['mind heedless'],
-      chattering: ['mind loquacity'],
-      cheerful: ['mind mirth'],
-      chilly: ['chill', 'cold'],
-      choking: ['throat constriction'],
-      clumsy: ['awkward'],
-      complaining: ['mind lamenting'],
-      conceited: ['mind haughty'],
-      confusion: ['mind dullness'],
-      constipation: ['stool hard', 'rectum inactivity'],
-      contemptuous: ['mind haughty'],
-      convulsions: ['spasms'],
-      cowardice: ['mind timidity'],
-      craving: ['desires'],
-      crying: ['mind weeping'],
-      cursing: ['mind swearing'],
-      darkness: ['fear dark'],
-      dazed: ['mind stupefaction'],
-      deceitful: ['mind lying'],
-      delirium: ['mind mania', 'mind raving'],
-      delusions: ['mind illusions'],
-      depressed: ['mind sadness'],
-      despair: ['mind hopelessness', 'mind sadness'],
-      despondency: ['mind sadness'],
-      diarrhea: ['stool watery', 'stool frequent'],
-      dizziness: ['vertigo'],
-      dread: ['fear'],
-      drowsy: ['sleepiness'],
-      dullness: ['mind sluggishness'],
-      dyspnea: ['respiration difficult'],
-      ecstasy: ['mind exhilaration'],
-      egotism: ['mind haughty'],
-      embarrassment: ['mind mortification'],
-      emptiness: ['hollow'],
-      ennui: ['mind weary life'],
-      envy: ['mind jealousy'],
-      exhaustion: ['weakness'],
-      fainting: ['syncope'],
-      fatigue: ['weariness'],
-      fear: ['mind fright'],
-      fidgety: ['mind restlessness'],
-      flatulence: ['abdomen distension'],
-      forgetful: ['mind memory weakness'],
-      forsaken: ['mind abandoned', 'mind company'],
-      giddiness: ['vertigo'],
-      grief: ['mind sadness', 'mind ailments grief'],
-      groaning: ['mind moaning'],
-      hallucinations: ['mind delusions'],
-      haste: ['mind hurry'],
-      hatred: ['mind malice'],
-      haughty: ['mind pride'],
-      headache: ['head pain'],
-      heartburn: ['stomach eructations'],
-      heaviness: ['weight'],
-      homesickness: ['mind nostalgia'],
-      hopelessness: ['mind despair'],
-      hurry: ['mind haste'],
-      idle: ['mind indolence'],
-      illusions: ['mind delusions'],
-      impatience: ['mind irritability', 'mind restlessness'],
-      impulsive: ['mind rashness'],
-      indecision: ['mind irresolution'],
-      indifference: ['mind apathy'],
-      indignation: ['mind anger', 'mind mortification'],
-      indolence: ['mind laziness'],
-      insanity: ['mind mania'],
-      insomnia: ['sleep sleeplessness'],
-      irascibility: ['mind anger'],
-      irresolution: ['mind indecision'],
-      irritability: ['mind anger', 'mind morose'],
-      itching: ['pruritus'],
-      jealousy: ['mind envy'],
-      joy: ['mind mirth'],
-      lamenting: ['mind weeping'],
-      languor: ['lassitude'],
-      laughing: ['mind mirth'],
-      laziness: ['mind indolence'],
-      lethargy: ['sleepiness', 'mind dullness'],
-      lightheaded: ['vertigo'],
-      listless: ['mind indifference'],
-      loathing: ['aversion'],
-      loneliness: ['mind forsaken'],
-      loquacity: ['mind talking'],
-      'low-spirited': ['mind sadness'],
-      madness: ['mind mania'],
-      malice: ['mind spiteful'],
-      mania: ['mind insanity', 'mind rage'],
-      melancholy: ['mind sadness'],
-      mirth: ['mind cheerfulness'],
-      miserly: ['mind avarice'],
-      moaning: ['mind groaning'],
-      moody: ['mind changeable'],
-      morose: ['mind irritability'],
-      mortification: ['mind embarrassment'],
-      nervous: ['mind restlessness', 'mind anxiety'],
-      nightmare: ['dreams frightful'],
-      numbness: ['insensibility'],
-      obstinate: ['mind headstrong'],
-      offended: ['mind sensitive'],
-      palpitation: ['chest palpitation'],
-      panic: ['mind fear', 'mind anxiety'],
-      paranoia: ['mind suspicious'],
-      pining: ['mind grief'],
-      pride: ['mind haughty'],
-      prostration: ['weakness'],
-      quarrelsome: ['mind anger'],
-      quiet: ['mind tranquil'],
-      rage: ['mind fury', 'mind anger'],
-      raving: ['mind delirium'],
-      remorse: ['mind reproaches'],
-      reproaches: ['mind remorse'],
-      restlessness: ['mind anxiety'],
-      sadness: ['mind grief', 'mind weeping'],
-      screaming: ['mind shrieking'],
-      seclusion: ['mind company aversion'],
-      sensitive: ['mind oversensitive'],
-      shame: ['mind embarrassment'],
-      shivering: ['chill'],
-      shrieking: ['mind screaming'],
-      shy: ['mind timidity'],
-      silent: ['mind taciturn'],
-      sleeplessness: ['sleep waking'],
-      sluggish: ['mind indolence'],
-      sobbing: ['mind weeping'],
-      solitude: ['mind company aversion', 'mind forsaken'],
-      somnolence: ['sleepiness'],
-      sore: ['bruised'],
-      sorrow: ['mind grief'],
-      spasms: ['convulsions'],
-      spiteful: ['mind malice'],
-      startled: ['mind fright'],
-      stiffness: ['rigidity'],
-      stupor: ['unconsciousness'],
-      sulky: ['mind morose'],
-      suspicious: ['mind distrustful'],
-      swearing: ['mind cursing'],
-      sweating: ['perspiration'],
-      taciturn: ['mind silent'],
-      talkative: ['mind loquacity'],
-      tears: ['mind weeping'],
-      terror: ['mind fright'],
-      throbbing: ['pulsation'],
-      timidity: ['mind bashful'],
-      tired: ['weakness'],
-      trembling: ['shaking'],
-      unconsciousness: ['coma'],
-      uneasy: ['mind restlessness'],
-      unhappy: ['mind sadness'],
-      vain: ['mind haughty'],
-      violent: ['mind rage'],
-      waking: ['sleep sleeplessness'],
-      weakness: ['prostration'],
-      weary: ['fatigue'],
-      weeping: ['mind sadness', 'mind lamenting'],
-      whining: ['mind complaining'],
-      worry: ['mind anxiety'],
-      wretched: ['mind despair']
+      abandoned:['mind forsaken'], abashed:['mind embarrassment','mind mortification'],
+      ability:['mind exertion mental','mind power mental'], abroad:['mind travelling desire'],
+      'absent-minded':['mind abstraction','mind concentration difficult'], absorbed:['mind abstraction'],
+      abusive:['mind cursing','mind insulting'], accompanied:['mind company desire'],
+      accusations:['mind reproaches'], aching:['pain'], afraid:['fear'],
+      anger:['mind irascibility','mind rage'], anguish:['mind anxiety','mind despair'],
+      apprehension:['mind anxiety','mind fear'], ashamed:['mind embarrassment'],
+      avarice:['mind greed'], bashful:['mind timidity'], bewildered:['mind confusion'],
+      bloated:['abdomen distension'], blushing:['face redness'], boasting:['mind haughty'],
+      boredom:['mind ennui'], bruised:['sore'], calm:['mind tranquil'],
+      capricious:['mind changeable'], careless:['mind heedless'], chattering:['mind loquacity'],
+      cheerful:['mind mirth'], chilly:['chill','cold'], choking:['throat constriction'],
+      clumsy:['awkward'], complaining:['mind lamenting'], conceited:['mind haughty'],
+      confusion:['mind dullness'], constipation:['stool hard','rectum inactivity'],
+      contemptuous:['mind haughty'], convulsions:['spasms'], cowardice:['mind timidity'],
+      craving:['desires'], crying:['mind weeping'], cursing:['mind swearing'],
+      darkness:['fear dark'], dazed:['mind stupefaction'], deceitful:['mind lying'],
+      delirium:['mind mania','mind raving'], delusions:['mind illusions'],
+      depressed:['mind sadness'], despair:['mind hopelessness','mind sadness'],
+      despondency:['mind sadness'], diarrhea:['stool watery','stool frequent'],
+      dizziness:['vertigo'], dread:['fear'], drowsy:['sleepiness'],
+      dullness:['mind sluggishness'], dyspnea:['respiration difficult'],
+      ecstasy:['mind exhilaration'], egotism:['mind haughty'],
+      embarrassment:['mind mortification'], emptiness:['hollow'], ennui:['mind weary life'],
+      envy:['mind jealousy'], exhaustion:['weakness'], fainting:['syncope'],
+      fatigue:['weariness'], fear:['mind fright'], fidgety:['mind restlessness'],
+      flatulence:['abdomen distension'], forgetful:['mind memory weakness'],
+      forsaken:['mind abandoned','mind company'], giddiness:['vertigo'],
+      grief:['mind sadness','mind ailments grief'], groaning:['mind moaning'],
+      hallucinations:['mind delusions'], haste:['mind hurry'], hatred:['mind malice'],
+      haughty:['mind pride'], headache:['head pain'], heartburn:['stomach eructations'],
+      heaviness:['weight'], homesickness:['mind nostalgia'], hopelessness:['mind despair'],
+      hurry:['mind haste'], idle:['mind indolence'], illusions:['mind delusions'],
+      impatience:['mind irritability','mind restlessness'], impulsive:['mind rashness'],
+      indecision:['mind irresolution'], indifference:['mind apathy'],
+      indignation:['mind anger','mind mortification'], indolence:['mind laziness'],
+      insanity:['mind mania'], insomnia:['sleep sleeplessness'], irascibility:['mind anger'],
+      irresolution:['mind indecision'], irritability:['mind anger','mind morose'],
+      itching:['pruritus'], jealousy:['mind envy'], joy:['mind mirth'],
+      lamenting:['mind weeping'], languor:['lassitude'], laughing:['mind mirth'],
+      laziness:['mind indolence'], lethargy:['sleepiness','mind dullness'],
+      lightheaded:['vertigo'], listless:['mind indifference'], loathing:['aversion'],
+      loneliness:['mind forsaken'], loquacity:['mind talking'], 'low-spirited':['mind sadness'],
+      madness:['mind mania'], malice:['mind spiteful'], mania:['mind insanity','mind rage'],
+      melancholy:['mind sadness'], mirth:['mind cheerfulness'], miserly:['mind avarice'],
+      moaning:['mind groaning'], moody:['mind changeable'], morose:['mind irritability'],
+      mortification:['mind embarrassment'], nervous:['mind restlessness','mind anxiety'],
+      nightmare:['dreams frightful'], numbness:['insensibility'], obstinate:['mind headstrong'],
+      offended:['mind sensitive'], palpitation:['chest palpitation'],
+      panic:['mind fear','mind anxiety'], paranoia:['mind suspicious'], pining:['mind grief'],
+      pride:['mind haughty'], prostration:['weakness'], quarrelsome:['mind anger'],
+      quiet:['mind tranquil'], rage:['mind fury','mind anger'], raving:['mind delirium'],
+      remorse:['mind reproaches'], reproaches:['mind remorse'], restlessness:['mind anxiety'],
+      sadness:['mind grief','mind weeping'], screaming:['mind shrieking'],
+      seclusion:['mind company aversion'], sensitive:['mind oversensitive'],
+      shame:['mind embarrassment'], shivering:['chill'], shrieking:['mind screaming'],
+      shy:['mind timidity'], silent:['mind taciturn'], sleeplessness:['sleep waking'],
+      sluggish:['mind indolence'], sobbing:['mind weeping'],
+      solitude:['mind company aversion','mind forsaken'], somnolence:['sleepiness'],
+      sore:['bruised'], sorrow:['mind grief'], spasms:['convulsions'],
+      spiteful:['mind malice'], startled:['mind fright'], stiffness:['rigidity'],
+      stupor:['unconsciousness'], sulky:['mind morose'], suspicious:['mind distrustful'],
+      swearing:['mind cursing'], sweating:['perspiration'], taciturn:['mind silent'],
+      talkative:['mind loquacity'], tears:['mind weeping'], terror:['mind fright'],
+      throbbing:['pulsation'], timidity:['mind bashful'], tired:['weakness'],
+      trembling:['shaking'], unconsciousness:['coma'], uneasy:['mind restlessness'],
+      unhappy:['mind sadness'], vain:['mind haughty'], violent:['mind rage'],
+      waking:['sleep sleeplessness'], weakness:['prostration'], weary:['fatigue'],
+      weeping:['mind sadness','mind lamenting'], whining:['mind complaining'],
+      worry:['mind anxiety'], wretched:['mind despair']
     };
 
     const state = {
       manifest: [], remedies: {}, currentRep: null, rubrics: [], byId: new Map(),
-      chapters: [], activeChapter: null, page: 0, pageSize: 50,
+      tree: null, navPath: [], bookMode: false, page: 0, pageSize: 50,
+      treeLimit: 120,
       clipboard: JSON.parse(localStorage.getItem('rep_clip') || '[]'),
       bookmarks: JSON.parse(localStorage.getItem('rep_bm') || '[]'),
       minGrade: 1, searchLimit: 60, remLimit: 60
@@ -466,25 +363,24 @@
       }
     }
 
-    function indexChapters(rubrics) {
-      const map = new Map();
+    function buildTree(rubrics) {
+      const root = { name: 'Chapters', children: new Map(), rubric: null, allItems: [] };
       for (const r of rubrics) {
-        const raw = r[2] || r[3] || '';
-        const comma = raw.indexOf(',');
-        const chap = (comma >= 0 ? raw.slice(0, comma) : raw).trim();
-        if (!chap) continue;
-        const key = chap.toLowerCase();
-        if (!map.has(key)) map.set(key, { key, name: chap, items: [] });
-        map.get(key).items.push(r);
+        const rawPath = r[2] || r[3] || '';
+        const parts = rawPath.split(',').map(s => s.trim()).filter(Boolean);
+        if (!parts.length) continue;
+        let cur = root;
+        for (const part of parts) {
+          const key = part.toLowerCase();
+          if (!cur.children.has(key)) {
+            cur.children.set(key, { name: part, children: new Map(), rubric: null, allItems: [] });
+          }
+          cur = cur.children.get(key);
+          cur.allItems.push(r);
+        }
+        cur.rubric = r;
       }
-      const list = [...map.values()].sort((a, b) => {
-        const ia = CHAPTER_ORDER.indexOf(a.key), ib = CHAPTER_ORDER.indexOf(b.key);
-        if (ia !== -1 && ib !== -1) return ia - ib;
-        if (ia !== -1) return -1; if (ib !== -1) return 1;
-        return a.name.localeCompare(b.name);
-      });
-      list.forEach(c => c.items.sort((a, b) => (a[2] || a[3]).localeCompare(b[2] || b[3])));
-      return list;
+      return root;
     }
 
     async function loadRepertory(abbrev) {
@@ -495,8 +391,8 @@
       const raw = await fetchCached('data/' + info.file);
       state.rubrics = raw; state.byId.clear();
       for (const r of raw) state.byId.set(r[0], r);
-      state.chapters = indexChapters(raw);
-      state.activeChapter = null; state.page = 0; $('chapFilter').value = '';
+      state.tree = buildTree(raw);
+      state.navPath = []; state.page = 0; state.treeLimit = 120; $('chapFilter').value = '';
       renderBrowse();
       if ($('searchInput').value.trim()) renderSearch();
     }
@@ -522,47 +418,30 @@
     function findCrossRefs(r) {
       const full = rubricLabel(r).toLowerCase();
       const parts = full.split(',').map(s => s.trim()).filter(Boolean);
-      const chap = parts[0] || '';
-      const sub = parts[1] || parts[0] || '';
+      const chap = parts[0] || '', sub = parts[1] || parts[0] || '';
       const words = sub.replace(/[^a-z-\s]/g, ' ').split(/\s+/).filter(w => w.length >= 3);
-      const refs = [];
-      const seen = new Set();
+      const refs = [], seen = new Set();
       for (const w of [sub, ...words]) {
         const targets = XREF_MAP[w];
-        if (targets) {
-          for (const t of targets) {
-            if (!seen.has(t)) { seen.add(t); refs.push(t); }
-          }
-        }
+        if (targets) for (const t of targets) if (!seen.has(t)) { seen.add(t); refs.push(t); }
       }
-      if (!refs.length && words.length) {
-        refs.push(`${chap} ${words[0]}`.trim());
-      }
+      if (!refs.length && words.length) refs.push(`${chap} ${words[0]}`.trim());
       return refs.slice(0, 3);
     }
 
-    function formatRubricTitle(r, stripChap) {
-      let full = rubricLabel(r);
-      if (stripChap && state.activeChapter) {
-        const prefix = state.activeChapter.name + ',';
-        if (full.toLowerCase().startsWith(prefix.toLowerCase())) full = full.slice(prefix.length).trim();
-      }
-      const parts = full.split(',').map(s => s.trim()).filter(Boolean);
-      if (!parts.length) return `<strong>${esc(rubricLabel(r))}</strong>`;
-      return `<strong>${esc(parts[0].toUpperCase())}</strong>` +
-        (parts.length > 1 ? ` <span class="rubric-sub">· ${esc(parts.slice(1).join(' › '))}</span>` : '');
-    }
-
-    function renderBookEntry(r, stripChap) {
+    function renderBookEntry(r) {
       const id = r[0], rems = r[4] || [];
       const clipKey = `${state.currentRep.abbrev}:${id}`;
       const isAdded = state.clipboard.some(c => c.key === clipKey);
       const isBm = state.bookmarks.some(b => b.key === clipKey);
       const xrefs = rems.length === 0 ? findCrossRefs(r) : [];
+      const parts = rubricLabel(r).split(',').map(s => s.trim()).filter(Boolean);
+      const titleHtml = `<strong>${esc((parts[0] || '').toUpperCase())}</strong>` +
+        (parts.length > 1 ? ` <span class="rubric-sub">· ${esc(parts.slice(1).join(' › '))}</span>` : '');
       return `
         <div class="book-entry">
           <div class="rubric-head">
-            <div class="rubric-title">${formatRubricTitle(r, stripChap)}</div>
+            <div class="rubric-title">${titleHtml}</div>
             <div style="display:flex;gap:4px;">
               <button class="btn-sm ${isBm ? 'added' : ''}" onclick="toggleBm(${id})">${isBm ? '★' : '☆'}</button>
               <button class="btn-sm ${isAdded ? 'added' : ''}" onclick="toggleClip(${id})">${isAdded ? '✓' : '+ Case'}</button>
@@ -576,29 +455,50 @@
       `;
     }
 
+    function getNodeAt(pathKeys) {
+      let cur = state.tree;
+      for (const k of pathKeys) {
+        if (!cur || !cur.children.has(k)) return null;
+        cur = cur.children.get(k);
+      }
+      return cur;
+    }
+
+    function sortEntries(entries, isRoot) {
+      return entries.sort((a, b) => {
+        if (isRoot) {
+          const ia = CHAPTER_ORDER.indexOf(a[0]), ib = CHAPTER_ORDER.indexOf(b[0]);
+          if (ia !== -1 && ib !== -1) return ia - ib;
+          if (ia !== -1) return -1; if (ib !== -1) return 1;
+        }
+        return a[1].name.localeCompare(b[1].name);
+      });
+    }
+
     function renderBrowse() {
+      if (!state.tree) return;
+      const isRoot = state.navPath.length === 0;
+      $('backBtn').classList.toggle('hidden', isRoot);
+      $('modeBtn').classList.toggle('hidden', isRoot);
+      $('modeBtn').textContent = state.bookMode ? '📂 Tree' : '📖 Book';
+
+      // Build clickable breadcrumb pills
+      const pills = [`<button class="crumb-pill" onclick="jumpPath(-1)">Chapters</button>`];
+      let walk = state.tree;
+      state.navPath.forEach((k, i) => {
+        walk = walk && walk.children.get(k);
+        const label = walk ? walk.name.toUpperCase().slice(0, 18) : k.toUpperCase();
+        pills.push(`<button class="crumb-pill" onclick="jumpPath(${i})">${esc(label)}</button>`);
+      });
+      $('crumbPills').innerHTML = pills.join('');
+
+      const node = getNodeAt(state.navPath);
+      if (!node) return;
       const q = $('chapFilter').value.trim().toLowerCase();
-      if (!state.activeChapter) {
-        $('backBtn').classList.add('hidden');
-        $('subTitle').textContent = 'Chapters';
-        $('chapFilter').placeholder = 'Type chapter name...';
-        let list = state.chapters;
-        if (q) list = list.filter(c => c.name.toLowerCase().includes(q));
-        $('browseList').innerHTML = list.length ? '<div class="chapter-list">' + list.map(c => `
-          <button class="chapter-row" onclick="openChapter('${esc(c.key).replace(/'/g, "\\'")}')">
-            <div class="chap-icon">${CHAPTER_ICONS[c.key] || '📖'}</div>
-            <div class="chap-info">
-              <div class="chap-name">${esc(c.name.toUpperCase())}</div>
-              <div class="chap-meta">${c.items.length.toLocaleString()} rubrics</div>
-            </div>
-            <div class="chap-arrow">➜</div>
-          </button>
-        `).join('') + '</div>' : '<div class="status">No matching chapter.</div>';
-      } else {
-        $('backBtn').classList.remove('hidden');
-        $('subTitle').textContent = state.activeChapter.name.toUpperCase();
-        $('chapFilter').placeholder = `Filter inside ${state.activeChapter.name}...`;
-        let items = state.activeChapter.items;
+      $('chapFilter').placeholder = isRoot ? 'Type chapter...' : 'Type a few characters of the rubric...';
+
+      if (!isRoot && state.bookMode) {
+        let items = node.allItems.slice().sort((a,b) => rubricLabel(a).localeCompare(rubricLabel(b)));
         if (q) {
           const terms = q.split(/\s+/).filter(Boolean);
           items = items.filter(r => terms.every(t => rubricLabel(r).toLowerCase().includes(t)));
@@ -609,23 +509,54 @@
         const pager = `
           <div class="pager">
             <button class="btn-sm" ${state.page === 0 ? 'disabled' : ''} onclick="setPage(${state.page - 1})">← Prev</button>
-            <span class="rubric-meta">Page ${state.page + 1} of ${totalPages} (${items.length.toLocaleString()} rubrics)</span>
+            <span class="rubric-meta">Page ${state.page + 1}/${totalPages} (${items.length.toLocaleString()})</span>
             <button class="btn-sm" ${state.page >= totalPages - 1 ? 'disabled' : ''} onclick="setPage(${state.page + 1})">Next →</button>
           </div>
         `;
         $('browseList').innerHTML = slice.length
-          ? pager + `<div class="book-sheet">` + slice.map(r => renderBookEntry(r, true)).join('') + `</div>` + pager
-          : '<div class="status">No matching rubrics in this chapter.</div>';
+          ? pager + `<div class="book-sheet">` + slice.map(renderBookEntry).join('') + `</div>` + pager
+          : '<div class="status">No matching rubrics.</div>';
+        return;
       }
+
+      // Tree View (grouped sub-rubrics like Synthesis)
+      let html = '';
+      if (!isRoot && node.rubric) {
+        html += `<div class="book-sheet">` + renderBookEntry(node.rubric) + `</div>`;
+      }
+      let entries = sortEntries([...node.children.entries()], isRoot);
+      if (q) entries = entries.filter(([, child]) => child.name.toLowerCase().includes(q));
+
+      const slice = entries.slice(0, state.treeLimit);
+      if (slice.length) {
+        html += '<div class="chapter-list">' + slice.map(([key, child]) => {
+          const sub = child.children.size;
+          const icon = isRoot ? `<div class="chap-icon">${CHAPTER_ICONS[key] || '📖'}</div>` : '';
+          const badge = isRoot
+            ? `<span class="chap-meta" style="margin-right:4px;">${child.allItems.length.toLocaleString()}</span>`
+            : `<span class="count-circle">${sub}</span>`;
+          return `<button class="chapter-row" onclick="pushPath('${esc(key).replace(/'/g, "\\'")}')">
+            ${icon}
+            <div class="chap-info">
+              <div class="chap-name">${isRoot ? esc(child.name.toUpperCase()) : esc(child.name)}</div>
+            </div>
+            ${badge}
+            <div class="chap-arrow">➜</div>
+          </button>`;
+        }).join('') + '</div>';
+      }
+      if (entries.length > slice.length) {
+        html += `<button class="btn-sm" style="width:100%;margin-top:8px;padding:10px;" onclick="state.treeLimit+=120;renderBrowse()">Show more (${entries.length - slice.length} remaining)</button>`;
+      }
+      $('browseList').innerHTML = html || '<div class="status">No matching rubrics.</div>';
     }
 
-    window.openChapter = key => {
-      state.activeChapter = state.chapters.find(c => c.key === key) || null;
-      state.page = 0; $('chapFilter').value = ''; renderBrowse(); window.scrollTo(0, 0);
-    };
+    $('modeBtn').onclick = () => { state.bookMode = !state.bookMode; state.page = 0; renderBrowse(); };
+    window.pushPath = key => { state.navPath.push(key); $('chapFilter').value = ''; state.treeLimit = 120; state.page = 0; renderBrowse(); window.scrollTo(0, 0); };
+    window.jumpPath = idx => { state.navPath = idx < 0 ? [] : state.navPath.slice(0, idx + 1); $('chapFilter').value = ''; state.treeLimit = 120; state.page = 0; renderBrowse(); };
+    $('backBtn').onclick = () => { if (state.navPath.length) { state.navPath.pop(); $('chapFilter').value = ''; state.page = 0; renderBrowse(); } };
+    $('chapFilter').oninput = () => { state.treeLimit = 120; state.page = 0; renderBrowse(); };
     window.setPage = p => { state.page = Math.max(0, p); renderBrowse(); window.scrollTo(0, 0); };
-    $('backBtn').onclick = () => { state.activeChapter = null; state.page = 0; $('chapFilter').value = ''; renderBrowse(); };
-    $('chapFilter').oninput = () => { state.page = 0; renderBrowse(); };
 
     window.quickSearch = query => { switchTab('search'); $('searchInput').value = query; state.searchLimit = 60; renderSearch(); window.scrollTo(0, 0); };
 
@@ -675,7 +606,7 @@
       const slice = matches.slice(0, state.searchLimit);
       $('searchResults').innerHTML =
         `<div class="rubric-meta" style="margin-bottom:8px;">${matches.length.toLocaleString()} matching rubrics</div>` +
-        (slice.length ? `<div class="book-sheet">` + slice.map(r => renderBookEntry(r, false)).join('') + `</div>` : '') +
+        (slice.length ? `<div class="book-sheet">` + slice.map(renderBookEntry).join('') + `</div>` : '') +
         (matches.length > slice.length ? `<button class="btn-sm" style="width:100%;margin-top:8px;padding:10px;" onclick="state.searchLimit+=60;renderSearch()">Load more results</button>` : '');
     }
 
@@ -691,7 +622,7 @@
 
     function renderBookmarks() {
       if (!state.bookmarks.length) { $('bookmarkList').innerHTML = '<div class="status">No bookmarks yet. Tap ☆ on any rubric to save it here.</div>'; return; }
-      $('bookmarkList').innerHTML = `<div class="book-sheet">` + state.bookmarks.map(b => renderBookEntry([b.id, null, b.path, b.path, b.rems], false)).join('') + `</div>`;
+      $('bookmarkList').innerHTML = `<div class="book-sheet">` + state.bookmarks.map(b => renderBookEntry([b.id, null, b.path, b.path, b.rems])).join('') + `</div>`;
     }
 
     function renderClip() {
@@ -756,9 +687,14 @@
     function switchTab(tab) {
       ['browse','search','clip','remedy','bookmarks'].forEach(t => $(`view-${t}`).classList.toggle('hidden', t !== tab));
       document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-      $('backBtn').classList.toggle('hidden', tab !== 'browse' || !state.activeChapter);
-      const titles = { browse: state.activeChapter ? state.activeChapter.name.toUpperCase() : 'Chapters', search:'Search Rubrics', clip:'Clipboard', remedy:'Remedy List', bookmarks:'Bookmarks' };
-      $('subTitle').textContent = titles[tab] || 'Repertory';
+      if (tab === 'browse') {
+        renderBrowse();
+      } else {
+        $('backBtn').classList.add('hidden');
+        $('modeBtn').classList.add('hidden');
+        const titles = { search:'Search Rubrics', clip:'Clipboard', remedy:'Remedy List', bookmarks:'Bookmarks' };
+        $('crumbPills').innerHTML = `<button class="crumb-pill">${titles[tab] || 'Repertory'}</button>`;
+      }
       if (tab === 'clip') renderClip();
       if (tab === 'bookmarks') renderBookmarks();
     }
