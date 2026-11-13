@@ -101,9 +101,7 @@
       background: var(--card); border: 1px solid var(--border); border-radius: 10px;
       padding: 6px 12px;
     }
-    .book-entry {
-      padding: 10px 0; border-bottom: 1px solid var(--border);
-    }
+    .book-entry { padding: 10px 0; border-bottom: 1px solid var(--border); }
     .book-entry:last-child { border-bottom: none; }
     .rubric-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
     .rubric-title { font-size: 15px; line-height: 1.35; flex: 1; }
@@ -114,7 +112,9 @@
     .rem-g2 { color: var(--g2); font-weight: 700; font-style: italic; }
     .rem-g1 { color: var(--g1); font-weight: 400; }
     .rem-item { display: inline-block; margin-right: 7px; cursor: pointer; }
-    .xref { color: var(--g3); font-style: italic; font-size: 13px; margin-top: 3px; cursor: pointer; }
+    .xref-list { margin-top: 4px; display: flex; flex-direction: column; gap: 3px; }
+    .xref { color: var(--g3); font-style: italic; font-weight: 600; font-size: 13px; cursor: pointer; }
+    .xref-arrow { color: var(--text); font-style: normal; margin-right: 4px; }
     .pager { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; gap: 8px; }
     .btn-sm {
       padding: 5px 9px; border-radius: 6px; border: 1px solid var(--border); font-size: 12px; font-weight: 700;
@@ -160,7 +160,7 @@
     </section>
 
     <section id="view-search" class="hidden">
-      <input id="searchInput" class="search-box" type="search" placeholder="Search all rubrics (e.g. anxiety night, cough dry)..." />
+      <input id="searchInput" class="search-box" type="search" placeholder="Search all rubrics (e.g. forsaken, anxiety night)..." />
       <div class="chips" id="gradeFilters">
         <button class="chip active" data-min="1">All Grades</button>
         <button class="chip" data-min="2">Grade 2+</button>
@@ -211,6 +211,193 @@
       respiration:'🫁', cough:'😮‍💨', expectoration:'💨', chest:'❤️', back:'🦴',
       extremities:'🦵', sleep:'😴', dreams:'💭', chill:'🥶', fever:'🌡️',
       perspiration:'💦', skin:'🩹', generals:'⚡', generalities:'⚡'
+    };
+
+    const XREF_MAP = {
+      abandoned: ['mind forsaken'],
+      abashed: ['mind embarrassment', 'mind mortification'],
+      ability: ['mind exertion mental', 'mind power mental'],
+      abroad: ['mind travelling desire'],
+      'absent-minded': ['mind abstraction', 'mind concentration difficult'],
+      absorbed: ['mind abstraction', 'mind thoughts'],
+      abusive: ['mind cursing', 'mind insulting'],
+      accompanied: ['mind company desire'],
+      accusations: ['mind reproaches'],
+      aching: ['pain'],
+      afraid: ['fear'],
+      aggravation: ['worse'],
+      amelioration: ['better'],
+      anger: ['mind irascibility', 'mind rage'],
+      anguish: ['mind anxiety', 'mind despair'],
+      apprehension: ['mind anxiety', 'mind fear'],
+      ashamed: ['mind embarrassment'],
+      avarice: ['mind greed'],
+      bashful: ['mind timidity'],
+      bewildered: ['mind confusion'],
+      bloated: ['abdomen distension'],
+      blushing: ['face redness'],
+      boasting: ['mind haughty'],
+      boredom: ['mind ennui'],
+      bruised: ['sore'],
+      calm: ['mind tranquil'],
+      capricious: ['mind changeable'],
+      careless: ['mind heedless'],
+      chattering: ['mind loquacity'],
+      cheerful: ['mind mirth'],
+      chilly: ['chill', 'cold'],
+      choking: ['throat constriction'],
+      clumsy: ['awkward'],
+      complaining: ['mind lamenting'],
+      conceited: ['mind haughty'],
+      confusion: ['mind dullness'],
+      constipation: ['stool hard', 'rectum inactivity'],
+      contemptuous: ['mind haughty'],
+      convulsions: ['spasms'],
+      cowardice: ['mind timidity'],
+      craving: ['desires'],
+      crying: ['mind weeping'],
+      cursing: ['mind swearing'],
+      darkness: ['fear dark'],
+      dazed: ['mind stupefaction'],
+      deceitful: ['mind lying'],
+      delirium: ['mind mania', 'mind raving'],
+      delusions: ['mind illusions'],
+      depressed: ['mind sadness'],
+      despair: ['mind hopelessness', 'mind sadness'],
+      despondency: ['mind sadness'],
+      diarrhea: ['stool watery', 'stool frequent'],
+      dizziness: ['vertigo'],
+      dread: ['fear'],
+      drowsy: ['sleepiness'],
+      dullness: ['mind sluggishness'],
+      dyspnea: ['respiration difficult'],
+      ecstasy: ['mind exhilaration'],
+      egotism: ['mind haughty'],
+      embarrassment: ['mind mortification'],
+      emptiness: ['hollow'],
+      ennui: ['mind weary life'],
+      envy: ['mind jealousy'],
+      exhaustion: ['weakness'],
+      fainting: ['syncope'],
+      fatigue: ['weariness'],
+      fear: ['mind fright'],
+      fidgety: ['mind restlessness'],
+      flatulence: ['abdomen distension'],
+      forgetful: ['mind memory weakness'],
+      forsaken: ['mind abandoned', 'mind company'],
+      giddiness: ['vertigo'],
+      grief: ['mind sadness', 'mind ailments grief'],
+      groaning: ['mind moaning'],
+      hallucinations: ['mind delusions'],
+      haste: ['mind hurry'],
+      hatred: ['mind malice'],
+      haughty: ['mind pride'],
+      headache: ['head pain'],
+      heartburn: ['stomach eructations'],
+      heaviness: ['weight'],
+      homesickness: ['mind nostalgia'],
+      hopelessness: ['mind despair'],
+      hurry: ['mind haste'],
+      idle: ['mind indolence'],
+      illusions: ['mind delusions'],
+      impatience: ['mind irritability', 'mind restlessness'],
+      impulsive: ['mind rashness'],
+      indecision: ['mind irresolution'],
+      indifference: ['mind apathy'],
+      indignation: ['mind anger', 'mind mortification'],
+      indolence: ['mind laziness'],
+      insanity: ['mind mania'],
+      insomnia: ['sleep sleeplessness'],
+      irascibility: ['mind anger'],
+      irresolution: ['mind indecision'],
+      irritability: ['mind anger', 'mind morose'],
+      itching: ['pruritus'],
+      jealousy: ['mind envy'],
+      joy: ['mind mirth'],
+      lamenting: ['mind weeping'],
+      languor: ['lassitude'],
+      laughing: ['mind mirth'],
+      laziness: ['mind indolence'],
+      lethargy: ['sleepiness', 'mind dullness'],
+      lightheaded: ['vertigo'],
+      listless: ['mind indifference'],
+      loathing: ['aversion'],
+      loneliness: ['mind forsaken'],
+      loquacity: ['mind talking'],
+      'low-spirited': ['mind sadness'],
+      madness: ['mind mania'],
+      malice: ['mind spiteful'],
+      mania: ['mind insanity', 'mind rage'],
+      melancholy: ['mind sadness'],
+      mirth: ['mind cheerfulness'],
+      miserly: ['mind avarice'],
+      moaning: ['mind groaning'],
+      moody: ['mind changeable'],
+      morose: ['mind irritability'],
+      mortification: ['mind embarrassment'],
+      nervous: ['mind restlessness', 'mind anxiety'],
+      nightmare: ['dreams frightful'],
+      numbness: ['insensibility'],
+      obstinate: ['mind headstrong'],
+      offended: ['mind sensitive'],
+      palpitation: ['chest palpitation'],
+      panic: ['mind fear', 'mind anxiety'],
+      paranoia: ['mind suspicious'],
+      pining: ['mind grief'],
+      pride: ['mind haughty'],
+      prostration: ['weakness'],
+      quarrelsome: ['mind anger'],
+      quiet: ['mind tranquil'],
+      rage: ['mind fury', 'mind anger'],
+      raving: ['mind delirium'],
+      remorse: ['mind reproaches'],
+      reproaches: ['mind remorse'],
+      restlessness: ['mind anxiety'],
+      sadness: ['mind grief', 'mind weeping'],
+      screaming: ['mind shrieking'],
+      seclusion: ['mind company aversion'],
+      sensitive: ['mind oversensitive'],
+      shame: ['mind embarrassment'],
+      shivering: ['chill'],
+      shrieking: ['mind screaming'],
+      shy: ['mind timidity'],
+      silent: ['mind taciturn'],
+      sleeplessness: ['sleep waking'],
+      sluggish: ['mind indolence'],
+      sobbing: ['mind weeping'],
+      solitude: ['mind company aversion', 'mind forsaken'],
+      somnolence: ['sleepiness'],
+      sore: ['bruised'],
+      sorrow: ['mind grief'],
+      spasms: ['convulsions'],
+      spiteful: ['mind malice'],
+      startled: ['mind fright'],
+      stiffness: ['rigidity'],
+      stupor: ['unconsciousness'],
+      sulky: ['mind morose'],
+      suspicious: ['mind distrustful'],
+      swearing: ['mind cursing'],
+      sweating: ['perspiration'],
+      taciturn: ['mind silent'],
+      talkative: ['mind loquacity'],
+      tears: ['mind weeping'],
+      terror: ['mind fright'],
+      throbbing: ['pulsation'],
+      timidity: ['mind bashful'],
+      tired: ['weakness'],
+      trembling: ['shaking'],
+      unconsciousness: ['coma'],
+      uneasy: ['mind restlessness'],
+      unhappy: ['mind sadness'],
+      vain: ['mind haughty'],
+      violent: ['mind rage'],
+      waking: ['sleep sleeplessness'],
+      weakness: ['prostration'],
+      weary: ['fatigue'],
+      weeping: ['mind sadness', 'mind lamenting'],
+      whining: ['mind complaining'],
+      worry: ['mind anxiety'],
+      wretched: ['mind despair']
     };
 
     const state = {
@@ -332,6 +519,28 @@
       }).join('');
     }
 
+    function findCrossRefs(r) {
+      const full = rubricLabel(r).toLowerCase();
+      const parts = full.split(',').map(s => s.trim()).filter(Boolean);
+      const chap = parts[0] || '';
+      const sub = parts[1] || parts[0] || '';
+      const words = sub.replace(/[^a-z-\s]/g, ' ').split(/\s+/).filter(w => w.length >= 3);
+      const refs = [];
+      const seen = new Set();
+      for (const w of [sub, ...words]) {
+        const targets = XREF_MAP[w];
+        if (targets) {
+          for (const t of targets) {
+            if (!seen.has(t)) { seen.add(t); refs.push(t); }
+          }
+        }
+      }
+      if (!refs.length && words.length) {
+        refs.push(`${chap} ${words[0]}`.trim());
+      }
+      return refs.slice(0, 3);
+    }
+
     function formatRubricTitle(r, stripChap) {
       let full = rubricLabel(r);
       if (stripChap && state.activeChapter) {
@@ -349,7 +558,7 @@
       const clipKey = `${state.currentRep.abbrev}:${id}`;
       const isAdded = state.clipboard.some(c => c.key === clipKey);
       const isBm = state.bookmarks.some(b => b.key === clipKey);
-      const lastWord = rubricLabel(r).split(',').pop().trim().split(/\s+/)[0] || '';
+      const xrefs = rems.length === 0 ? findCrossRefs(r) : [];
       return `
         <div class="book-entry">
           <div class="rubric-head">
@@ -361,7 +570,7 @@
           </div>
           ${rems.length
             ? `<div class="rems-inline">${formatInlineRemedies(rems)}</div>`
-            : `<div class="xref" onclick="quickSearch('${esc(lastWord).replace(/'/g, "\\'")}')">↗ Cross-reference / heading — tap to search "${esc(lastWord)}"</div>`
+            : `<div class="xref-list">${xrefs.map(x => `<div class="xref" onclick="quickSearch('${esc(x).replace(/'/g, "\\'")}')"><span class="xref-arrow">↗</span>${esc(x.toUpperCase())}</div>`).join('')}</div>`
           }
         </div>
       `;
@@ -418,7 +627,7 @@
     $('backBtn').onclick = () => { state.activeChapter = null; state.page = 0; $('chapFilter').value = ''; renderBrowse(); };
     $('chapFilter').oninput = () => { state.page = 0; renderBrowse(); };
 
-    window.quickSearch = word => { switchTab('search'); $('searchInput').value = word; renderSearch(); };
+    window.quickSearch = query => { switchTab('search'); $('searchInput').value = query; state.searchLimit = 60; renderSearch(); window.scrollTo(0, 0); };
 
     window.toggleClip = id => {
       const r = state.byId.get(id); if (!r) return;
