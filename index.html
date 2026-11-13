@@ -4,182 +4,210 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Repertory" />
-  <title>Homeopathic Repertory</title>
+  <title>Synthesis-Style Repertory</title>
   <style>
     :root {
-      --bg: #f4f6f9;
-      --card: #ffffff;
-      --text: #0f172a;
-      --muted: #64748b;
-      --border: #e2e8f0;
-      --primary: #0f766e;
-      --primary-soft: #ccfbf1;
-      --g3: #b91c1c;
-      --g2: #1d4ed8;
-      --g1: #334155;
+      --bg: #eef2f5; --card: #ffffff; --text: #1e293b; --muted: #64748b;
+      --border: #d8e0e8; --nav-bg: #3b5b70; --nav-sub: #4f738a;
+      --nav-active: #274050; --primary: #2d6a8e; --primary-soft: #e0f2fe;
+      --g3: #b91c1c; --g2: #1d4ed8; --g1: #334155;
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-bot: env(safe-area-inset-bottom, 0px);
     }
     body.dark {
-      --bg: #0b1120;
-      --card: #1e293b;
-      --text: #f1f5f9;
-      --muted: #94a3b8;
-      --border: #334155;
-      --primary: #14b8a6;
-      --primary-soft: #134e4a;
-      --g3: #f87171;
-      --g2: #60a5fa;
-      --g1: #cbd5e1;
+      --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --muted: #94a3b8;
+      --border: #334155; --nav-bg: #162433; --nav-sub: #1e3348;
+      --nav-active: #0f172a; --primary: #38bdf8; --primary-soft: #0c4a6e;
+      --g3: #f87171; --g2: #60a5fa; --g1: #cbd5e1;
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
       margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
       background: var(--bg); color: var(--text);
-      padding-top: calc(56px + var(--safe-top));
-      padding-bottom: calc(70px + var(--safe-bot));
+      padding-bottom: calc(18px + var(--safe-bot));
     }
-    header {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 20;
-      padding: calc(10px + var(--safe-top)) 14px 10px;
-      background: var(--card); border-bottom: 1px solid var(--border);
+    .topbar {
+      position: sticky; top: 0; z-index: 30;
+      background: var(--nav-bg); color: #fff;
+      padding-top: var(--safe-top);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    .nav-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+    }
+    .nav-item {
+      background: transparent; border: none; color: rgba(255,255,255,0.85);
+      padding: 8px 4px; font-size: 11px; font-weight: 600;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      border-right: 1px solid rgba(255,255,255,0.08); cursor: pointer; position: relative;
+    }
+    .nav-item.active { background: var(--nav-active); color: #fff; }
+    .nav-item .ico { font-size: 16px; line-height: 1; }
+    .subbar {
+      background: var(--nav-sub); padding: 8px 10px;
       display: flex; align-items: center; gap: 8px;
     }
-    header h1 { font-size: 16px; margin: 0; font-weight: 700; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    select, input, button { font-family: inherit; font-size: 14px; }
+    .subbar-title { font-size: 14px; font-weight: 700; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sub-btn {
+      background: rgba(0,0,0,0.22); border: 1px solid rgba(255,255,255,0.25);
+      color: #fff; border-radius: 6px; padding: 5px 10px; font-size: 12px; font-weight: 600; cursor: pointer;
+    }
     .rep-select {
-      max-width: 155px; padding: 6px 8px; border-radius: 8px;
-      border: 1px solid var(--border); background: var(--bg); color: var(--text);
+      max-width: 155px; background: rgba(0,0,0,0.22); color: #fff;
+      border: 1px solid rgba(255,255,255,0.25); border-radius: 6px; padding: 5px 6px; font-size: 12px;
     }
-    .icon-btn {
-      border: 1px solid var(--border); background: var(--bg); color: var(--text);
-      border-radius: 8px; padding: 6px 10px; font-weight: 600; cursor: pointer;
+    .badge {
+      position: absolute; top: 4px; right: 16%;
+      background: #ef4444; color: #fff; border-radius: 999px;
+      padding: 1px 5px; font-size: 10px; font-weight: 700;
     }
-    .container { padding: 12px; max-width: 820px; margin: 0 auto; }
+    .container { padding: 10px; max-width: 820px; margin: 0 auto; }
     .search-box {
-      width: 100%; padding: 11px 14px; border-radius: 12px;
+      width: 100%; padding: 10px 12px; border-radius: 10px;
       border: 1px solid var(--border); background: var(--card); color: var(--text);
       font-size: 15px; margin-bottom: 10px;
     }
-    .chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 6px; }
+    .chapter-list { background: var(--card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .chapter-row {
+      width: 100%; background: var(--card); border: none; border-bottom: 1px solid var(--border);
+      padding: 10px 12px; display: flex; align-items: center; gap: 12px;
+      color: var(--text); text-align: left; cursor: pointer;
+    }
+    .chapter-row:last-child { border-bottom: none; }
+    .chap-icon {
+      width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
+      background: linear-gradient(135deg, #dbeafe, #e0f2fe);
+      display: flex; align-items: center; justify-content: center; font-size: 22px;
+      border: 1px solid var(--border);
+    }
+    body.dark .chap-icon { background: linear-gradient(135deg, #1e3a5f, #0f172a); }
+    .chap-info { flex: 1; min-width: 0; }
+    .chap-name { font-size: 14px; font-weight: 700; letter-spacing: 0.3px; }
+    .chap-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .chap-arrow {
+      width: 24px; height: 24px; border-radius: 999px; background: var(--muted); color: #fff;
+      display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; opacity: 0.7;
+    }
+    .chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; }
     .chip {
-      white-space: nowrap; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 600;
+      white-space: nowrap; padding: 5px 11px; border-radius: 999px; font-size: 12px; font-weight: 600;
       background: var(--card); border: 1px solid var(--border); color: var(--text); cursor: pointer;
     }
-    .chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .chip.active { background: var(--nav-bg); color: #fff; border-color: var(--nav-bg); }
     .card {
-      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
-      padding: 12px; margin-bottom: 10px;
+      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 11px 12px; margin-bottom: 8px;
     }
-    .rubric-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-    .rubric-path { font-size: 15px; font-weight: 600; line-height: 1.35; flex: 1; }
-    .rubric-meta { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .rubric-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .rubric-path { font-size: 14px; font-weight: 600; line-height: 1.35; flex: 1; }
+    .rubric-meta { font-size: 12px; color: var(--muted); margin-top: 3px; }
     .btn-sm {
-      padding: 6px 10px; border-radius: 8px; border: none; font-size: 12px; font-weight: 700;
+      padding: 5px 9px; border-radius: 6px; border: 1px solid var(--border); font-size: 12px; font-weight: 700;
       background: var(--primary-soft); color: var(--primary); cursor: pointer; white-space: nowrap;
     }
-    .btn-sm.added { background: var(--primary); color: #fff; }
-    .rems-wrap { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border); line-height: 1.65; font-size: 14px; }
+    .btn-sm.added { background: var(--nav-bg); color: #fff; border-color: var(--nav-bg); }
+    .rems-wrap { margin-top: 8px; padding-top: 7px; border-top: 1px dashed var(--border); line-height: 1.65; font-size: 13px; }
     .rem-g3, .rem-g4 { color: var(--g3); font-weight: 800; text-transform: uppercase; }
     .rem-g2 { color: var(--g2); font-weight: 700; }
     .rem-g1 { color: var(--g1); font-weight: 400; }
     .rem-item { display: inline-block; margin-right: 8px; cursor: pointer; }
-    .chapter-btn {
-      width: 100%; text-align: left; padding: 13px 14px; margin-bottom: 8px;
-      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-      color: var(--text); font-weight: 600; display: flex; justify-content: space-between; cursor: pointer;
-    }
-    .matrix-wrap { overflow-x: auto; background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
-    table { border-collapse: collapse; width: 100%; font-size: 13px; }
-    th, td { border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); padding: 8px 6px; text-align: center; }
-    th:first-child, td:first-child { text-align: left; position: sticky; left: 0; background: var(--card); min-width: 150px; max-width: 190px; }
+    .matrix-wrap { overflow-x: auto; background: var(--card); border: 1px solid var(--border); border-radius: 10px; }
+    table { border-collapse: collapse; width: 100%; font-size: 12px; }
+    th, td { border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); padding: 7px 6px; text-align: center; }
+    th:first-child, td:first-child { text-align: left; position: sticky; left: 0; background: var(--card); min-width: 145px; max-width: 185px; }
     .g-cell-3, .g-cell-4 { color: var(--g3); font-weight: 800; }
     .g-cell-2 { color: var(--g2); font-weight: 700; }
     .g-cell-1 { color: var(--g1); }
-    nav {
-      position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
-      background: var(--card); border-top: 1px solid var(--border);
-      display: flex; padding-bottom: var(--safe-bot);
-    }
-    nav button {
-      flex: 1; padding: 10px 4px; border: none; background: transparent; color: var(--muted);
-      font-size: 11px; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer;
-    }
-    nav button.active { color: var(--primary); }
-    .badge {
-      background: var(--primary); color: #fff; border-radius: 999px;
-      padding: 1px 6px; font-size: 10px; margin-left: 3px;
-    }
-    .status { text-align: center; padding: 24px 12px; color: var(--muted); font-size: 14px; }
+    .status { text-align: center; padding: 26px 12px; color: var(--muted); font-size: 14px; }
     .hidden { display: none; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Repertory</h1>
-    <select id="repSelect" class="rep-select"></select>
-    <button class="icon-btn" id="themeBtn">◐</button>
+  <header class="topbar">
+    <div class="nav-grid">
+      <button class="nav-item active" data-tab="browse"><span class="ico">🏠</span>Chapters</button>
+      <button class="nav-item" data-tab="search"><span class="ico">🔍</span>Search</button>
+      <button class="nav-item" data-tab="clip"><span class="ico">📋</span>Clipboard<span id="clipBadge" class="badge hidden">0</span></button>
+      <button class="nav-item" data-tab="remedy"><span class="ico">💊</span>Rem. list</button>
+    </div>
+    <div class="subbar">
+      <button class="sub-btn hidden" id="backBtn">↩ Back</button>
+      <span class="subbar-title" id="subTitle">Chapters</span>
+      <select id="repSelect" class="rep-select"></select>
+      <button class="sub-btn" id="themeBtn">◐</button>
+    </div>
   </header>
 
   <main class="container">
     <section id="view-browse">
+      <input id="chapFilter" class="search-box" type="search" placeholder="Type chapter or sub-rubric..." />
       <div id="breadcrumbs" class="chips"></div>
       <div id="browseList"></div>
     </section>
 
     <section id="view-search" class="hidden">
-      <input id="searchInput" class="search-box" type="search" placeholder="Search rubrics (e.g. anxiety night, headache right)..." />
+      <input id="searchInput" class="search-box" type="search" placeholder="Search all rubrics (e.g. anxiety night, cough dry)..." />
       <div class="chips" id="gradeFilters">
         <button class="chip active" data-min="1">All Grades</button>
         <button class="chip" data-min="2">Grade 2+</button>
         <button class="chip" data-min="3">Grade 3 Only</button>
+        <button class="chip" data-tab-jump="bookmarks">★ Bookmarks (<span id="bmCount">0</span>)</button>
       </div>
       <div id="searchResults"></div>
     </section>
 
+    <section id="view-bookmarks" class="hidden">
+      <div id="bookmarkList"></div>
+    </section>
+
     <section id="view-clip" class="hidden">
       <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
-        <button class="icon-btn" id="shareCaseBtn">Share / Copy Case</button>
-        <button class="icon-btn" id="clearClipBtn">Clear Case</button>
+        <button class="btn-sm" id="shareCaseBtn">Share / Copy Case</button>
+        <button class="btn-sm" id="clearClipBtn">Clear Clipboard</button>
       </div>
       <div id="clipRubrics"></div>
-      <h3 style="font-size:15px;margin:14px 0 8px;">Repertorization Grid</h3>
+      <h3 style="font-size:14px;margin:12px 0 8px;">Repertorization Matrix</h3>
       <div id="matrixBox" class="matrix-wrap"></div>
     </section>
 
     <section id="view-remedy" class="hidden">
-      <input id="remSearchInput" class="search-box" type="search" placeholder="Search remedy (e.g. Acon, Pulsatilla, Sulph)..." />
+      <input id="remSearchInput" class="search-box" type="search" placeholder="Type remedy name (e.g. Acon, Puls, Sulph)..." />
       <div id="remResults"></div>
     </section>
 
-    <p style="text-align:center;font-size:11px;color:var(--muted);margin-top:24px;">
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin-top:20px;">
       Powered by open-source <a href="https://www.oorep.com/" target="_blank" style="color:var(--primary);">OOREP</a> data (GPL-3.0). Educational &amp; reference tool only.
     </p>
   </main>
 
-  <nav>
-    <button data-tab="browse" class="active"><span>📖</span>Browse</button>
-    <button data-tab="search"><span>🔍</span>Search</button>
-    <button data-tab="clip"><span>📋</span>Case <span id="clipBadge" class="badge hidden">0</span></button>
-    <button data-tab="remedy"><span>💊</span>Remedies</button>
-  </nav>
-
   <script>
+    const CHAPTER_ORDER = [
+      'mind','vertigo','head','eye','vision','ear','hearing','nose','face','mouth','teeth',
+      'throat','external throat','stomach','abdomen','rectum','stool','bladder','kidneys',
+      'prostate gland','urethra','urine','genitalia male','male','genitalia female','female',
+      'larynx and trachea','larynx','respiration','cough','expectoration','chest','back',
+      'extremities','sleep','dreams','chill','fever','perspiration','skin','generals','generalities'
+    ];
+    const CHAPTER_ICONS = {
+      mind:'🧠', vertigo:'🌀', head:'👤', eye:'👁️', vision:'👓', ear:'👂', hearing:'🔊',
+      nose:'👃', face:'😐', mouth:'👄', teeth:'🦷', throat:'🗣️', 'external throat':'🧣',
+      stomach:'🍽️', abdomen:'🩺', rectum:'⭕', stool:'💩', bladder:'💧', kidneys:'🫘',
+      'prostate gland':'⚕️', urethra:'〰️', urine:'🧪', 'genitalia male':'♂️', male:'♂️',
+      'genitalia female':'♀️', female:'♀️', 'larynx and trachea':'🎙️', larynx:'🎙️',
+      respiration:'🫁', cough:'😮‍💨', expectoration:'💨', chest:'❤️', back:'🦴',
+      extremities:'🦵', sleep:'😴', dreams:'💭', chill:'🥶', fever:'🌡️',
+      perspiration:'💦', skin:'🩹', generals:'⚡', generalities:'⚡'
+    };
+
     const state = {
-      manifest: [],
-      remedies: {},
-      currentRep: null,
-      rubrics: [],
-      byId: new Map(),
-      children: new Map(),
-      roots: [],
-      navStack: [],
+      manifest: [], remedies: {}, currentRep: null, rubrics: [], byId: new Map(),
+      tree: null, navPath: [], browseLimit: 120,
       clipboard: JSON.parse(localStorage.getItem('rep_clip') || '[]'),
-      minGrade: 1,
-      searchLimit: 60,
-      remLimit: 60
+      bookmarks: JSON.parse(localStorage.getItem('rep_bm') || '[]'),
+      minGrade: 1, searchLimit: 60, remLimit: 60
     };
 
     const $ = id => document.getElementById(id);
@@ -189,7 +217,6 @@
       localStorage.setItem('rep_dark', document.body.classList.contains('dark') ? '1' : '0');
     };
 
-    // IndexedDB offline cache
     function idbGet(key) {
       return new Promise(res => {
         const req = indexedDB.open('rep_cache', 1);
@@ -225,7 +252,7 @@
     }
 
     async function init() {
-      $('browseList').innerHTML = '<div class="status">Loading repertory index...</div>';
+      $('browseList').innerHTML = '<div class="status">Loading repertory database...</div>';
       try {
         const [manifest, remedies] = await Promise.all([
           fetchCached('data/manifest.json'),
@@ -236,39 +263,53 @@
         $('repSelect').innerHTML = manifest.map(m =>
           `<option value="${m.abbrev}">${m.title} (${m.count.toLocaleString()})</option>`
         ).join('');
-        const kent = manifest.find(m => m.abbrev.toLowerCase().includes('kent')) || manifest[0];
+        const kent = manifest.find(m => m.abbrev.toLowerCase() === 'kent')
+          || manifest.find(m => m.abbrev.toLowerCase().includes('kent'))
+          || manifest[0];
         if (kent) {
           $('repSelect').value = kent.abbrev;
           await loadRepertory(kent.abbrev);
         }
-        updateClipBadge();
+        updateBadges();
       } catch (e) {
         $('browseList').innerHTML = '<div class="status">Could not load database yet. Please refresh in a moment.</div>';
       }
+    }
+
+    function buildTree(rubrics) {
+      const root = { name: 'Chapters', children: new Map(), rubric: null, count: 0 };
+      for (const r of rubrics) {
+        const rawPath = r[2] || r[3] || '';
+        const parts = rawPath.split(',').map(s => s.trim()).filter(Boolean);
+        if (!parts.length) continue;
+        let cur = root;
+        cur.count += 1;
+        for (const part of parts) {
+          const key = part.toLowerCase();
+          if (!cur.children.has(key)) {
+            cur.children.set(key, { name: part, children: new Map(), rubric: null, count: 0 });
+          }
+          cur = cur.children.get(key);
+          cur.count += 1;
+        }
+        cur.rubric = r;
+      }
+      return root;
     }
 
     async function loadRepertory(abbrev) {
       const info = state.manifest.find(m => m.abbrev === abbrev);
       if (!info) return;
       state.currentRep = info;
-      $('browseList').innerHTML = `<div class="status">Loading ${info.title}...</div>`;
+      $('browseList').innerHTML = `<div class="status">Indexing ${info.title}...</div>`;
       const raw = await fetchCached('data/' + info.file);
       state.rubrics = raw;
       state.byId.clear();
-      state.children.clear();
-      state.roots = [];
-      for (const r of raw) {
-        state.byId.set(r[0], r);
-        const pid = r[1];
-        if (pid === null || pid === undefined || pid === 0) {
-          state.roots.push(r);
-        } else {
-          if (!state.children.has(pid)) state.children.set(pid, []);
-          state.children.get(pid).push(r);
-        }
-      }
-      if (state.roots.length === 0) state.roots = raw.slice(0, 100);
-      state.navStack = [];
+      for (const r of raw) state.byId.set(r[0], r);
+      state.tree = buildTree(raw);
+      state.navPath = [];
+      state.browseLimit = 120;
+      $('chapFilter').value = '';
       renderBrowse();
       if ($('searchInput').value.trim()) renderSearch();
     }
@@ -278,16 +319,13 @@
     function esc(s) {
       return String(s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
     }
-
-    function rubricLabel(r) {
-      return r[2] || r[3] || ('Rubric #' + r[0]);
-    }
+    function rubricLabel(r) { return r[2] || r[3] || ('Rubric #' + r[0]); }
 
     function renderRubricCard(r) {
       const id = r[0], path = rubricLabel(r), rems = r[4] || [];
       const clipKey = `${state.currentRep.abbrev}:${id}`;
       const isAdded = state.clipboard.some(c => c.key === clipKey);
-      const kids = state.children.get(id) || [];
+      const isBm = state.bookmarks.some(b => b.key === clipKey);
       const remHtml = rems.slice().sort((a,b) => b[1] - a[1]).map(([rid, w]) => {
         const rem = state.remedies[rid] || { a: '#' + rid, n: '' };
         const cls = w >= 3 ? 'rem-g3' : w === 2 ? 'rem-g2' : 'rem-g1';
@@ -298,63 +336,122 @@
           <div class="rubric-head">
             <div style="flex:1">
               <div class="rubric-path">${esc(path)}</div>
-              <div class="rubric-meta">${rems.length} remedies ${kids.length ? `· ${kids.length} sub-rubrics` : ''}</div>
+              <div class="rubric-meta">${rems.length} remedies</div>
             </div>
-            <button class="btn-sm ${isAdded ? 'added' : ''}" onclick="toggleClip(${id})">${isAdded ? '✓ Added' : '+ Case'}</button>
+            <div style="display:flex;gap:4px;">
+              <button class="btn-sm ${isBm ? 'added' : ''}" onclick="toggleBm(${id})">${isBm ? '★' : '☆'}</button>
+              <button class="btn-sm ${isAdded ? 'added' : ''}" onclick="toggleClip(${id})">${isAdded ? '✓' : '+ Case'}</button>
+            </div>
           </div>
-          ${kids.length ? `<div style="margin-top:8px;"><button class="icon-btn" style="font-size:12px;" onclick="openNode(${id})">Open ${kids.length} sub-rubrics ›</button></div>` : ''}
           ${rems.length ? `<div class="rems-wrap">${remHtml}</div>` : ''}
         </div>
       `;
     }
 
-    function renderBrowse() {
-      const crumbs = [`<button class="chip ${state.navStack.length === 0 ? 'active' : ''}" onclick="jumpStack(-1)">Chapters</button>`];
-      state.navStack.forEach((id, i) => {
-        const r = state.byId.get(id);
-        const label = r ? (r[3] || r[2] || '').slice(0, 22) : id;
-        crumbs.push(`<button class="chip ${i === state.navStack.length - 1 ? 'active' : ''}" onclick="jumpStack(${i})">${esc(label)}</button>`);
-      });
-      $('breadcrumbs').innerHTML = crumbs.join('');
-
-      const list = state.navStack.length === 0
-        ? state.roots
-        : (state.children.get(state.navStack[state.navStack.length - 1]) || []);
-
-      if (state.navStack.length === 0) {
-        $('browseList').innerHTML = list.map(r => {
-          const kids = (state.children.get(r[0]) || []).length;
-          return `<button class="chapter-btn" onclick="openNode(${r[0]})"><span>${esc(r[3] || r[2])}</span><span style="color:var(--muted)">${kids} ›</span></button>`;
-        }).join('');
-      } else {
-        const parent = state.byId.get(state.navStack[state.navStack.length - 1]);
-        let html = parent && (parent[4] || []).length ? renderRubricCard(parent) : '';
-        html += list.slice(0, 120).map(renderRubricCard).join('');
-        $('browseList').innerHTML = html || '<div class="status">No sub-rubrics here.</div>';
+    function getNodeAt(pathKeys) {
+      let cur = state.tree;
+      for (const k of pathKeys) {
+        if (!cur || !cur.children.has(k)) return null;
+        cur = cur.children.get(k);
       }
+      return cur;
     }
 
-    window.openNode = id => { state.navStack.push(id); renderBrowse(); window.scrollTo(0, 0); };
-    window.jumpStack = idx => { state.navStack = idx < 0 ? [] : state.navStack.slice(0, idx + 1); renderBrowse(); };
+    function sortEntries(entries, isRoot) {
+      return entries.sort((a, b) => {
+        if (isRoot) {
+          const ia = CHAPTER_ORDER.indexOf(a[0]);
+          const ib = CHAPTER_ORDER.indexOf(b[0]);
+          if (ia !== -1 && ib !== -1) return ia - ib;
+          if (ia !== -1) return -1;
+          if (ib !== -1) return 1;
+        }
+        return a[1].name.localeCompare(b[1].name);
+      });
+    }
+
+    function renderBrowse() {
+      if (!state.tree) return;
+      const isRoot = state.navPath.length === 0;
+      $('backBtn').classList.toggle('hidden', isRoot);
+
+      const crumbs = [`<button class="chip ${isRoot ? 'active' : ''}" onclick="jumpPath(-1)">Chapters</button>`];
+      let walk = state.tree;
+      state.navPath.forEach((k, i) => {
+        walk = walk && walk.children.get(k);
+        const label = walk ? walk.name.slice(0, 20) : k;
+        crumbs.push(`<button class="chip ${i === state.navPath.length - 1 ? 'active' : ''}" onclick="jumpPath(${i})">${esc(label)}</button>`);
+      });
+      $('breadcrumbs').innerHTML = crumbs.join('');
+      $('subTitle').textContent = isRoot ? 'Chapters' : (walk ? walk.name : 'Sub-rubrics');
+
+      const node = getNodeAt(state.navPath);
+      if (!node) return;
+      const q = $('chapFilter').value.trim().toLowerCase();
+      let entries = sortEntries([...node.children.entries()], isRoot);
+      if (q) entries = entries.filter(([, child]) => child.name.toLowerCase().includes(q));
+
+      let html = '';
+      if (node.rubric && (node.rubric[4] || []).length) {
+        html += renderRubricCard(node.rubric);
+      }
+      const slice = entries.slice(0, state.browseLimit);
+      if (slice.length) {
+        html += '<div class="chapter-list">' + slice.map(([key, child]) => {
+          const sub = child.children.size;
+          const remCnt = child.rubric ? (child.rubric[4] || []).length : 0;
+          const icon = isRoot ? `<div class="chap-icon">${CHAPTER_ICONS[key] || '📖'}</div>` : '';
+          const meta = sub > 0 ? `${sub} sub-rubrics · ${child.count.toLocaleString()} entries` : `${remCnt} remedies`;
+          return `<button class="chapter-row" onclick="pushPath('${esc(key).replace(/'/g, "\\'")}')">
+            ${icon}
+            <div class="chap-info">
+              <div class="chap-name">${isRoot ? esc(child.name.toUpperCase()) : esc(child.name)}</div>
+              <div class="chap-meta">${meta}</div>
+            </div>
+            <div class="chap-arrow">➜</div>
+          </button>`;
+        }).join('') + '</div>';
+      }
+      if (entries.length > slice.length) {
+        html += `<button class="btn-sm" style="width:100%;margin-top:8px;padding:10px;" onclick="state.browseLimit+=120;renderBrowse()">Show more (${entries.length - slice.length} remaining)</button>`;
+      }
+      $('browseList').innerHTML = html || '<div class="status">No matching chapters or rubrics.</div>';
+    }
+
+    $('chapFilter').oninput = () => { state.browseLimit = 120; renderBrowse(); };
+    $('backBtn').onclick = () => { if (state.navPath.length) { state.navPath.pop(); $('chapFilter').value = ''; renderBrowse(); } };
+    window.pushPath = key => { state.navPath.push(key); $('chapFilter').value = ''; state.browseLimit = 120; renderBrowse(); window.scrollTo(0, 0); };
+    window.jumpPath = idx => { state.navPath = idx < 0 ? [] : state.navPath.slice(0, idx + 1); $('chapFilter').value = ''; state.browseLimit = 120; renderBrowse(); };
 
     window.toggleClip = id => {
-      const r = state.byId.get(id);
-      if (!r) return;
+      const r = state.byId.get(id); if (!r) return;
       const key = `${state.currentRep.abbrev}:${id}`;
       const idx = state.clipboard.findIndex(c => c.key === key);
       if (idx >= 0) state.clipboard.splice(idx, 1);
       else state.clipboard.push({ key, rep: state.currentRep.abbrev, path: rubricLabel(r), weight: 1, rems: r[4] || [] });
       localStorage.setItem('rep_clip', JSON.stringify(state.clipboard));
-      updateClipBadge();
-      if (!$('view-browse').classList.contains('hidden')) renderBrowse();
-      if (!$('view-search').classList.contains('hidden')) renderSearch();
-      if (!$('view-clip').classList.contains('hidden')) renderClip();
+      updateBadges(); refreshActiveView();
     };
-
-    function updateClipBadge() {
+    window.toggleBm = id => {
+      const r = state.byId.get(id); if (!r) return;
+      const key = `${state.currentRep.abbrev}:${id}`;
+      const idx = state.bookmarks.findIndex(b => b.key === key);
+      if (idx >= 0) state.bookmarks.splice(idx, 1);
+      else state.bookmarks.push({ key, id, rep: state.currentRep.abbrev, path: rubricLabel(r), rems: r[4] || [] });
+      localStorage.setItem('rep_bm', JSON.stringify(state.bookmarks));
+      updateBadges(); refreshActiveView();
+    };
+    function updateBadges() {
       const b = $('clipBadge');
       b.textContent = state.clipboard.length;
       b.classList.toggle('hidden', state.clipboard.length === 0);
+      $('bmCount').textContent = state.bookmarks.length;
+    }
+    function refreshActiveView() {
+      if (!$('view-browse').classList.contains('hidden')) renderBrowse();
+      if (!$('view-search').classList.contains('hidden')) renderSearch();
+      if (!$('view-clip').classList.contains('hidden')) renderClip();
+      if (!$('view-bookmarks').classList.contains('hidden')) renderBookmarks();
     }
 
     function renderSearch() {
@@ -376,25 +473,30 @@
       $('searchResults').innerHTML =
         `<div class="rubric-meta" style="margin-bottom:8px;">${matches.length.toLocaleString()} matching rubrics</div>` +
         slice.map(renderRubricCard).join('') +
-        (matches.length > slice.length ? `<button class="chapter-btn" style="justify-content:center" onclick="state.searchLimit+=60;renderSearch()">Load more results</button>` : '');
+        (matches.length > slice.length ? `<button class="btn-sm" style="width:100%;padding:10px;" onclick="state.searchLimit+=60;renderSearch()">Load more results</button>` : '');
     }
 
     let searchTimer;
-    $('searchInput').oninput = () => {
-      state.searchLimit = 60;
-      clearTimeout(searchTimer);
-      searchTimer = setTimeout(renderSearch, 180);
-    };
+    $('searchInput').oninput = () => { state.searchLimit = 60; clearTimeout(searchTimer); searchTimer = setTimeout(renderSearch, 180); };
     $('gradeFilters').onclick = e => {
+      if (e.target.dataset.tabJump) { switchTab(e.target.dataset.tabJump); return; }
       if (!e.target.dataset.min) return;
       state.minGrade = Number(e.target.dataset.min);
-      [...$('gradeFilters').children].forEach(b => b.classList.toggle('active', b === e.target));
+      [...$('gradeFilters').children].forEach(b => { if (b.dataset.min) b.classList.toggle('active', b === e.target); });
       renderSearch();
     };
 
+    function renderBookmarks() {
+      if (!state.bookmarks.length) {
+        $('bookmarkList').innerHTML = '<div class="status">No bookmarks yet. Tap ☆ on any rubric to save it here.</div>';
+        return;
+      }
+      $('bookmarkList').innerHTML = state.bookmarks.map(b => renderRubricCard([b.id, null, b.path, b.path, b.rems])).join('');
+    }
+
     function renderClip() {
-      if (state.clipboard.length === 0) {
-        $('clipRubrics').innerHTML = '<div class="status">Your case clipboard is empty. Tap "+ Case" on any rubric to repertorize.</div>';
+      if (!state.clipboard.length) {
+        $('clipRubrics').innerHTML = '<div class="status">Clipboard is empty. Tap "+ Case" on any rubric to repertorize.</div>';
         $('matrixBox').innerHTML = '';
         return;
       }
@@ -406,20 +508,18 @@
               <div class="rubric-meta">${esc(c.rep)} · ${c.rems.length} remedies · Weight: ${c.weight}x</div>
             </div>
             <div style="display:flex;gap:4px;">
-              <button class="icon-btn" onclick="cycleWeight(${idx})">${c.weight}x</button>
-              <button class="icon-btn" onclick="removeClip(${idx})">✕</button>
+              <button class="btn-sm" onclick="cycleWeight(${idx})">${c.weight}x</button>
+              <button class="btn-sm" onclick="removeClip(${idx})">✕</button>
             </div>
           </div>
         </div>
       `).join('');
-
       const scores = new Map();
       state.clipboard.forEach((c, rIdx) => {
         for (const [rid, w] of c.rems) {
           if (!scores.has(rid)) scores.set(rid, { rid, total: 0, cov: 0, grades: {} });
           const s = scores.get(rid);
-          s.total += w * c.weight;
-          s.cov += 1;
+          s.total += w * c.weight; s.cov += 1;
           s.grades[rIdx] = Math.max(s.grades[rIdx] || 0, w);
         }
       });
@@ -433,75 +533,44 @@
       </table>`;
     }
 
-    window.cycleWeight = idx => {
-      state.clipboard[idx].weight = (state.clipboard[idx].weight % 3) + 1;
-      localStorage.setItem('rep_clip', JSON.stringify(state.clipboard));
-      renderClip();
-    };
-    window.removeClip = idx => {
-      state.clipboard.splice(idx, 1);
-      localStorage.setItem('rep_clip', JSON.stringify(state.clipboard));
-      updateClipBadge();
-      renderClip();
-    };
-    $('clearClipBtn').onclick = () => {
-      state.clipboard = [];
-      localStorage.setItem('rep_clip', '[]');
-      updateClipBadge();
-      renderClip();
-    };
+    window.cycleWeight = idx => { state.clipboard[idx].weight = (state.clipboard[idx].weight % 3) + 1; localStorage.setItem('rep_clip', JSON.stringify(state.clipboard)); renderClip(); };
+    window.removeClip = idx => { state.clipboard.splice(idx, 1); localStorage.setItem('rep_clip', JSON.stringify(state.clipboard)); updateBadges(); renderClip(); };
+    $('clearClipBtn').onclick = () => { state.clipboard = []; localStorage.setItem('rep_clip', '[]'); updateBadges(); renderClip(); };
     $('shareCaseBtn').onclick = async () => {
       if (!state.clipboard.length) return;
-      const lines = ['Homeopathic Case Repertorization:', ...state.clipboard.map((c,i) => `${i+1}. [${c.weight}x] ${c.path}`)];
-      const text = lines.join('\n');
+      const text = ['Homeopathic Case Repertorization:', ...state.clipboard.map((c,i) => `${i+1}. [${c.weight}x] ${c.path}`)].join('\n');
       if (navigator.share) await navigator.share({ title: 'Case Repertorization', text });
-      else { await navigator.clipboard.writeText(text); alert('Case copied to clipboard!'); }
+      else { await navigator.clipboard.writeText(text); alert('Case copied!'); }
     };
 
-    window.lookupRemedy = abbrev => {
-      switchTab('remedy');
-      $('remSearchInput').value = abbrev;
-      renderRemedyLookup();
-    };
-
+    window.lookupRemedy = abbrev => { switchTab('remedy'); $('remSearchInput').value = abbrev; renderRemedyLookup(); };
     function renderRemedyLookup() {
       const q = $('remSearchInput').value.trim().toLowerCase();
-      if (!q) {
-        $('remResults').innerHTML = '<div class="status">Enter a remedy abbreviation or full name to see its rubrics.</div>';
-        return;
-      }
-      const matchedIds = Object.entries(state.remedies)
-        .filter(([, v]) => v.a.toLowerCase().includes(q) || v.n.toLowerCase().includes(q))
-        .slice(0, 8);
-      if (!matchedIds.length) {
-        $('remResults').innerHTML = '<div class="status">No matching remedy found.</div>';
-        return;
-      }
-      const targetId = Number(matchedIds[0][0]);
-      const targetInfo = matchedIds[0][1];
+      if (!q) { $('remResults').innerHTML = '<div class="status">Enter a remedy abbreviation or full name to see its rubrics.</div>'; return; }
+      const matched = Object.entries(state.remedies).filter(([, v]) => v.a.toLowerCase().includes(q) || v.n.toLowerCase().includes(q)).slice(0, 8);
+      if (!matched.length) { $('remResults').innerHTML = '<div class="status">No matching remedy found.</div>'; return; }
+      const targetId = Number(matched[0][0]), info = matched[0][1];
       const hits = [];
       for (const r of state.rubrics) {
-        const found = (r[4] || []).find(x => x[0] === targetId);
-        if (found) hits.push({ r, w: found[1] });
+        const f = (r[4] || []).find(x => x[0] === targetId);
+        if (f) hits.push({ r, w: f[1] });
       }
       hits.sort((a,b) => b.w - a.w);
-      $('remResults').innerHTML = `
-        <div class="card"><strong>${esc(targetInfo.a)}</strong> — ${esc(targetInfo.n)}<div class="rubric-meta">${hits.length.toLocaleString()} rubrics in ${esc(state.currentRep.title)}</div></div>
-        ${hits.slice(0, state.remLimit).map(h => `
-          <div class="card"><span class="rem-g${h.w}">Grade ${h.w}</span> · ${esc(rubricLabel(h.r))}</div>
-        `).join('')}
-      `;
+      $('remResults').innerHTML = `<div class="card"><strong>${esc(info.a)}</strong> — ${esc(info.n)}<div class="rubric-meta">${hits.length.toLocaleString()} rubrics in ${esc(state.currentRep.title)}</div></div>` +
+        hits.slice(0, state.remLimit).map(h => `<div class="card"><span class="rem-g${h.w}">Grade ${h.w}</span> · ${esc(rubricLabel(h.r))}</div>`).join('');
     }
     $('remSearchInput').oninput = () => { state.remLimit = 60; renderRemedyLookup(); };
 
     function switchTab(tab) {
-      ['browse','search','clip','remedy'].forEach(t => {
-        $(`view-${t}`).classList.toggle('hidden', t !== tab);
-      });
-      document.querySelectorAll('nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+      ['browse','search','clip','remedy','bookmarks'].forEach(t => $(`view-${t}`).classList.toggle('hidden', t !== tab));
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+      $('backBtn').classList.toggle('hidden', tab !== 'browse' || state.navPath.length === 0);
+      const titles = { browse:'Chapters', search:'Search Rubrics', clip:'Clipboard', remedy:'Remedy List', bookmarks:'Bookmarks' };
+      $('subTitle').textContent = titles[tab] || 'Repertory';
       if (tab === 'clip') renderClip();
+      if (tab === 'bookmarks') renderBookmarks();
     }
-    document.querySelectorAll('nav button').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
+    document.querySelectorAll('.nav-item').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
 
     init();
   </script>
